@@ -1,7 +1,7 @@
 # Kasir-PWA
-<pre>
 Demo: https://kasir-pwa.web.app
 
+<pre>
 Aplikasi Kasir berbasis Progressive Web App (PWA) dengan pendekatan offline-first, dibangun menggunakan:
 🌐 HTML + Vue.js (via CDN)
 📊 AdminLTE Template untuk antarmuka admin yang responsif
