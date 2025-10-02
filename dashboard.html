@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#343a40">
+  <meta name="description" content="Aplikasi Kasir Offline First">
+  <title>Title page - Kasir PWA</title>
+  <!-- Manifest -->
+  <link rel="manifest" href="/assets/json/manifest.json">
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Awesomplete CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.7/awesomplete.min.css">
+  <link rel="stylesheet" href="/assets/css/awesomplete.dark.css">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=swap" rel="stylesheet">
+  <style>
+    /* Offline indicator */
+    .offline-indicator {
+      position: relative;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #dc3545;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      z-index: 9999;
+      display: none;
+    }
+    .online-indicator {
+      position: relative;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #28a745;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      z-index: 9999;
+      display: none;
+    }
+  </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0R4XFWJZ22"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0R4XFWJZ22'); // Ganti dengan ID G- Anda
+</script>
+</head>
+<body class="hold-transition sidebar-mini dark-mode">
+<!-- Offline/Online Indicators -->
+<div id="offlineIndicator" class="offline-indicator">
+  <i class="fas fa-wifi-slash"></i> Anda sedang offline. Data akan disimpan secara lokal.
+</div>
+<div id="onlineIndicator" class="online-indicator">
+  <i class="fas fa-wifi"></i> Koneksi tersedia.
+</div>
+<div class="wrapper" id="app">
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-dark">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <!-- Search -->
+      <!-- Navbar Search -->
+      <li class="nav-item">
+        <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+          <i class="fas fa-search"></i>
+        </a>
+        <div class="navbar-search-block">
+          <form class="form-inline">
+            <div class="input-group input-group-sm">
+              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+              <div class="input-group-append">
+                <button class="btn btn-navbar" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </li>
+      <!-- Notification -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-bell"></i>
+          <span class="badge badge-warning navbar-badge">3</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <span class="dropdown-item dropdown-header">3 Notifications</span>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-box text-warning"></i> Stok produk hampir habis
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-check-circle text-success"></i> Transaksi berhasil
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-exclamation-triangle text-danger"></i> Kesalahan sistem
+          </a>
+        </div>
+      </li>
+      <!-- Messages -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-envelope"></i>
+          <span class="badge badge-danger navbar-badge">2</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-envelope mr-2"></i> Permintaan restok
+            <span class="float-right text-muted text-sm">2 mins</span>
+          </a>
+        </div>
+      </li>
+      <!-- Tasks -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-tasks"></i>
+          <span class="badge badge-info navbar-badge">1</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-clipboard-list mr-2"></i> Verifikasi stok
+          </a>
+        </div>
+      </li>
+      <!-- Fullscreen -->
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="toggleFullScreen()">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </a>
+      </li>
+      <!-- Profile -->
+      <li class="nav-item">
+        <a class="nav-link" href="profile.html"><i class="fas fa-user"></i></a>
+      </li>
+      <!-- Logout -->
+      <li class="nav-item">
+        <a class="nav-link" href="logout.html"><i class="fas fa-sign-out-alt"></i></a>
+      </li>
+    </ul>
+  </nav>
+  <!-- Sidebar -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="index.html" class="brand-link">
+      <span class="brand-text font-weight-light">Kasir PWA</span>
+    </a>
+    <div class="sidebar">
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+          <li class="nav-item"><a href="index.html" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p></a></li>
+          <li class="nav-item"><a href="pos.html" class="nav-link active"><i class="nav-icon fas fa-cash-register"></i><p>Kasir</p></a></li>
+          <li class="nav-item"><a href="product.html" class="nav-link"><i class="nav-icon fas fa-box"></i><p>Produk</p></a></li>
+          <li class="nav-item"><a href="customer.html" class="nav-link"><i class="nav-icon fas fa-users"></i><p>Pelanggan</p></a></li>
+          <li class="nav-item"><a href="report.html" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Laporan</p></a></li>
+          <li class="nav-item"><a href="setting.html" class="nav-link"><i class="nav-icon fas fa-cog"></i><p>Pengaturan</p></a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+  <!-- Content Wrapper -->
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1><i class="fas fa-cash-register"></i> Title Page</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+              <li class="breadcrumb-item active">Title page</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Main Content -->
+    <section class="content">
+	  <div class="container-fluid">
+		<!-- Info Boxes -->
+		<div class="row">
+		  <div class="col-md-3 col-sm-6 col-12">
+			<div class="info-box bg-info">
+			  <span class="info-box-icon"><i class="fas fa-shopping-cart"></i></span>
+			  <div class="info-box-content">
+				<span class="info-box-text">Penjualan Hari Ini</span>
+				<span class="info-box-number" id="salesToday">Rp 0</span>
+				<div class="progress">
+				  <div class="progress-bar" style="width: 70%"></div>
+				</div>
+				<span class="progress-description">+12% dari kemarin</span>
+			  </div>
+			</div>
+		  </div>
+		  <div class="col-md-3 col-sm-6 col-12">
+			<div class="info-box bg-success">
+			  <span class="info-box-icon"><i class="fas fa-receipt"></i></span>
+			  <div class="info-box-content">
+				<span class="info-box-text">Transaksi Hari Ini</span>
+				<span class="info-box-number" id="transactionsToday">0</span>
+				<div class="progress">
+				  <div class="progress-bar" style="width: 50%"></div>
+				</div>
+				<span class="progress-description">+5% dari kemarin</span>
+			  </div>
+			</div>
+		  </div>
+		  <div class="col-md-3 col-sm-6 col-12">
+			<div class="info-box bg-warning">
+			  <span class="info-box-icon"><i class="fas fa-boxes"></i></span>
+			  <div class="info-box-content">
+				<span class="info-box-text">Produk Terjual</span>
+				<span class="info-box-number" id="itemsSoldToday">0</span>
+				<div class="progress">
+				  <div class="progress-bar" style="width: 30%"></div>
+				</div>
+				<span class="progress-description">+2% dari kemarin</span>
+			  </div>
+			</div>
+		  </div>
+		  <div class="col-md-3 col-sm-6 col-12">
+			<div class="info-box bg-danger">
+			  <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
+			  <div class="info-box-content">
+				<span class="info-box-text">Stok Menipis</span>
+				<span class="info-box-number" id="lowStockCount">0</span>
+				<div class="progress">
+				  <div class="progress-bar" style="width: 100%"></div>
+				</div>
+				<span class="progress-description">Perlu restok segera</span>
+			  </div>
+			</div>
+		  </div>
+		</div>
+
+		<!-- Chart and Top Products Row -->
+		<div class="row">
+		  <div class="col-md-8">
+			<div class="card card-primary">
+			  <div class="card-header">
+				<h3 class="card-title"><i class="fas fa-chart-line"></i> Penjualan 7 Hari Terakhir</h3>
+				<div class="card-tools">
+				  <button type="button" class="btn btn-tool" data-card-widget="collapse">
+					<i class="fas fa-minus"></i>
+				  </button>
+				</div>
+			  </div>
+			  <div class="card-body">
+				<div class="chart">
+				  <canvas id="salesChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		  <div class="col-md-4">
+			<div class="card card-secondary">
+			  <div class="card-header">
+				<h3 class="card-title"><i class="fas fa-fire"></i> Produk Terlaris</h3>
+				<div class="card-tools">
+				  <button type="button" class="btn btn-tool" data-card-widget="collapse">
+					<i class="fas fa-minus"></i>
+				  </button>
+				</div>
+			  </div>
+			  <div class="card-body p-0">
+				<ul class="products-list product-list-in-card pl-2 pr-2" id="bestSellersList">
+				  <!-- Best sellers will be populated here -->
+				</ul>
+			  </div>
+			  <div class="card-footer text-center">
+				<a href="product.html">Lihat Semua Produk</a>
+			  </div>
+			</div>
+		  </div>
+		</div>
+
+		<!-- Recent Transactions and Low Stock Row -->
+		<div class="row">
+		  <div class="col-md-6">
+			<div class="card card-info">
+			  <div class="card-header">
+				<h3 class="card-title"><i class="fas fa-history"></i> Transaksi Terbaru</h3>
+				<div class="card-tools">
+				  <button type="button" class="btn btn-tool" data-card-widget="collapse">
+					<i class="fas fa-minus"></i>
+				  </button>
+				</div>
+			  </div>
+			  <div class="card-body p-0">
+				<div class="table-responsive">
+				  <table class="table m-0">
+					<thead>
+					  <tr>
+						<th>ID Transaksi</th>
+						<th>Waktu</th>
+						<th>Total</th>
+						<th>Status</th>
+					  </tr>
+					</thead>
+					<tbody id="recentTransactionsBody">
+					  <!-- Recent transactions will be populated here -->
+					</tbody>
+				  </table>
+				</div>
+			  </div>
+			  <div class="card-footer text-center">
+				<a href="report.html">Lihat Laporan Lengkap</a>
+			  </div>
+			</div>
+		  </div>
+		  <div class="col-md-6">
+			<div class="card card-warning">
+			  <div class="card-header">
+				<h3 class="card-title"><i class="fas fa-exclamation-circle"></i> Stok Menipis</h3>
+				<div class="card-tools">
+				  <button type="button" class="btn btn-tool" data-card-widget="collapse">
+					<i class="fas fa-minus"></i>
+				  </button>
+				</div>
+			  </div>
+			  <div class="card-body p-0">
+				<ul class="products-list product-list-in-card pl-2 pr-2" id="lowStockList">
+				  <!-- Low stock items will be populated here -->
+				</ul>
+			  </div>
+			  <div class="card-footer text-center">
+				<a href="product.html">Kelola Produk</a>
+			  </div>
+			</div>
+		  </div>
+		</div>
+
+		<!-- Quick Actions Row -->
+		<div class="row">
+			<div class="col-12">
+				<div class="card card-dark">
+					<div class="card-header">
+						<h3 class="card-title"><i class="fas fa-bolt"></i> Aksi Cepat</h3>
+					</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-md-2 col-sm-4 col-6 mb-2">
+								<a href="pos.html" class="btn btn-app bg-success">
+									<i class="fas fa-cash-register"></i> Buka Kasir
+								</a>
+							</div>
+							<div class="col-md-2 col-sm-4 col-6 mb-2">
+								<a href="product.html" class="btn btn-app bg-info">
+									<i class="fas fa-plus"></i> Tambah Produk
+								</a>
+							</div>
+							<div class="col-md-2 col-sm-4 col-6 mb-2">
+								<a href="customer.html" class="btn btn-app bg-warning">
+									<i class="fas fa-user-plus"></i> Tambah Pelanggan
+								</a>
+							</div>
+							<div class="col-md-2 col-sm-4 col-6 mb-2">
+								<a href="report.html" class="btn btn-app bg-primary">
+									<i class="fas fa-file-invoice"></i> Laporan Harian
+								</a>
+							</div>
+							<div class="col-md-2 col-sm-4 col-6 mb-2">
+								<a href="setting.html" class="btn btn-app bg-secondary">
+									<i class="fas fa-cog"></i> Pengaturan
+								</a>
+							</div>
+							<div class="col-md-2 col-sm-4 col-6 mb-2">
+								 <a href="#" class="btn btn-app bg-danger" onclick="syncDatabases(); alert('Sinkronisasi dimulai...');">
+									<i class="fas fa-sync-alt"></i> Sinkron Data
+								</a>
+							</div>
+							 <!-- Tambahkan lebih banyak tombol sesuai kebutuhan -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	  </div>
+	</section>
+  </div>
+  <!-- Main Footer -->
+  <footer class="main-footer">
+    <strong>Kasir PWA &copy; 2025</strong>
+  </footer>
+</div>
+<!-- Service Worker Registration -->
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/assets/js/service-worker.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+  // Network status monitoring
+  function updateOnlineStatus() {
+    const offlineIndicator = document.getElementById('offlineIndicator');
+    const onlineIndicator = document.getElementById('onlineIndicator');
+    if (navigator.onLine) {
+      offlineIndicator.style.display = 'none';
+      onlineIndicator.style.display = 'block';
+      setTimeout(() => {
+        onlineIndicator.style.display = 'none';
+      }, 3000);
+    } else {
+      offlineIndicator.style.display = 'block';
+    }
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus(); // Initial check
+</script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.min.js"></script>
+<!-- html5-qrcode library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- Howler.js for audio (beep) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // --- DUMMY DATA untuk Demonstrasi ---
+  // Dalam implementasi nyata, data ini akan diambil dari PouchDB/localStorage
+  const dummySalesData = {
+    labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+    data: [1200000, 1900000, 1500000, 2200000, 1800000, 2500000, 3100000] // Total penjualan per hari
+  };
+
+  const dummyBestSellers = [
+    { id: '1', name: 'Indomie Goreng', sales: 150 },
+    { id: '2', name: 'Aqua 600ml', sales: 120 },
+    { id: '3', name: 'Roti Tawar', sales: 95 },
+    { id: '4', name: 'Susu Kental Manis', sales: 88 },
+    { id: '5', name: 'Minyak Goreng 1L', sales: 75 }
+  ];
+
+  const dummyRecentTransactions = [
+    { id: 'TRX001', time: '10:30', total: 'Rp 55.000', status: 'success' },
+    { id: 'TRX002', time: '11:15', total: 'Rp 120.500', status: 'success' },
+    { id: 'TRX003', time: '12:45', total: 'Rp 32.000', status: 'pending' },
+    { id: 'TRX004', time: '14:20', total: 'Rp 89.900', status: 'success' },
+    { id: 'TRX005', time: '15:55', total: 'Rp 250.000', status: 'success' }
+  ];
+
+  const dummyLowStockItems = [
+    { id: '101', name: 'Sabun Mandi Lux', stock: 3 },
+    { id: '102', name: 'Shampoo Pantene', stock: 1 },
+    { id: '103', name: 'Tissue Paseo', stock: 5 },
+    { id: '104', name: 'Gula Pasir 1kg', stock: 2 }
+  ];
+
+  // --- FUNGSI UNTUK MENGISI DATA DUMMY ---
+  function populateDashboard() {
+    // Update Info Boxes
+    document.getElementById('salesToday').textContent = `Rp ${dummySalesData.data[dummySalesData.data.length - 1].toLocaleString('id-ID')}`;
+    document.getElementById('transactionsToday').textContent = dummyRecentTransactions.length;
+    document.getElementById('itemsSoldToday').textContent = dummyBestSellers.reduce((sum, item) => sum + item.sales, 0);
+    document.getElementById('lowStockCount').textContent = dummyLowStockItems.length;
+
+    // Populate Best Sellers List
+    const bestSellersList = document.getElementById('bestSellersList');
+    bestSellersList.innerHTML = ''; // Clear existing
+    dummyBestSellers.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'item';
+        li.innerHTML = `
+            <div class="product-info">
+                <a href="javascript:void(0)" class="product-title">${item.name}
+                    <span class="badge badge-warning float-right">${item.sales} Terjual</span>
+                </a>
+                <span class="product-description">ID: ${item.id}</span>
+            </div>
+        `;
+        bestSellersList.appendChild(li);
+    });
+
+    // Populate Recent Transactions Table
+    const recentTransactionsBody = document.getElementById('recentTransactionsBody');
+    recentTransactionsBody.innerHTML = ''; // Clear existing
+    dummyRecentTransactions.forEach(tx => {
+        const row = document.createElement('tr');
+        let statusBadge = '';
+        if (tx.status === 'success') {
+            statusBadge = '<span class="badge badge-success">Sukses</span>';
+        } else if (tx.status === 'pending') {
+            statusBadge = '<span class="badge badge-warning">Pending</span>';
+        } else {
+            statusBadge = '<span class="badge badge-danger">Gagal</span>';
+        }
+        row.innerHTML = `
+            <td><a href="#">${tx.id}</a></td>
+            <td>${tx.time}</td>
+            <td>${tx.total}</td>
+            <td>${statusBadge}</td>
+        `;
+        recentTransactionsBody.appendChild(row);
+    });
+
+    // Populate Low Stock List
+    const lowStockList = document.getElementById('lowStockList');
+    lowStockList.innerHTML = ''; // Clear existing
+    dummyLowStockItems.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'item';
+        li.innerHTML = `
+             <div class="product-info">
+                <a href="javascript:void(0)" class="product-title">${item.name}
+                    <span class="badge badge-danger float-right">Sisa ${item.stock}</span>
+                </a>
+                 <span class="product-description">ID: ${item.id}</span>
+            </div>
+        `;
+        lowStockList.appendChild(li);
+    });
+
+    // Initialize Chart
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: dummySalesData.labels,
+        datasets: [{
+          label: 'Total Penjualan (Rp)',
+          data: dummySalesData.data,
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0, 123, 255, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4 // Membuat garis melengkung sedikit
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+                callback: function(value) {
+                    return 'Rp ' + value.toLocaleString('id-ID');
+                }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // --- INISIALISASI DASHBOARD SAAT HALAMAN DIMUAT ---
+  document.addEventListener('DOMContentLoaded', function () {
+    populateDashboard();
+    // Di sini Anda juga bisa memanggil fungsi untuk mengambil data nyata dari PouchDB
+    // fetchDataFromPouchDB().then(() => populateDashboard());
+  });
+
+  // --- (Opsional) Perbarui data secara berkala ---
+  // setInterval(populateDashboard, 30000); // Refresh setiap 30 detik
+
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+}
+</script>	
+</body>
+</html>

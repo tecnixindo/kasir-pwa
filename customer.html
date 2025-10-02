@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#343a40">
+  <meta name="description" content="Aplikasi Kasir Offline First">
+  <title>Pelanggan - Kasir PWA</title>
+  <!-- Manifest -->
+  <link rel="manifest" href="/assets/json/manifest.json">
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Awesomplete CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.7/awesomplete.min.css">
+  <link rel="stylesheet" href="/assets/css/awesomplete.dark.css">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=swap" rel="stylesheet">
+  <style>
+    .offline-indicator { position: fixed; top: 0; left: 0; right: 0; background: #dc3545; color: white; text-align: center; padding: 10px; z-index: 1050; display: none; }
+    .online-indicator { position: fixed; top: 0; left: 0; right: 0; background: #28a745; color: white; text-align: center; padding: 10px; z-index: 1050; display: none; }
+    .customer-card { transition: all 0.3s ease; }
+    .customer-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .btn-action { margin-right: 5px; margin-bottom: 5px; }
+    .quick-search { position: relative; }
+    .quick-search .form-control { padding-left: 40px; }
+    .quick-search i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d; }
+    .customer-tag { font-size: 0.8em; padding: 3px 8px; border-radius: 50px; margin-right: 5px; margin-bottom: 5px; }
+    .tag-regular { background-color: #6c757d; color: white; }
+    .tag-premium { background-color: #ffc107; color: #212529; }
+    .tag-vip { background-color: #fd7e14; color: white; }
+    .tag-member { background-color: #17a2b8; color: white; }
+    .customer-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #6f42c1; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
+  </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0R4XFWJZ22"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0R4XFWJZ22'); // Ganti dengan ID G- Anda
+</script>
+</head>
+<body class="hold-transition sidebar-mini dark-mode">
+<div id="offlineIndicator" class="offline-indicator"><i class="fas fa-wifi-slash"></i> Anda sedang offline. Data akan disimpan secara lokal.</div>
+<div id="onlineIndicator" class="online-indicator"><i class="fas fa-wifi"></i> Koneksi tersedia.</div>
+<div class="wrapper" id="app">
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-dark">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <!-- Navbar Search -->
+      <li class="nav-item">
+        <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+          <i class="fas fa-search"></i>
+        </a>
+        <div class="navbar-search-block">
+          <form class="form-inline">
+            <div class="input-group input-group-sm">
+              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+              <div class="input-group-append">
+                <button class="btn btn-navbar" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </li>
+      <!-- Notification -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-bell"></i>
+          <span class="badge badge-warning navbar-badge">3</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <span class="dropdown-item dropdown-header">3 Notifications</span>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-box text-warning"></i> Stok produk hampir habis
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-check-circle text-success"></i> Transaksi berhasil
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-exclamation-triangle text-danger"></i> Kesalahan sistem
+          </a>
+        </div>
+      </li>
+      <!-- Messages -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-envelope"></i>
+          <span class="badge badge-danger navbar-badge">2</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-envelope mr-2"></i> Permintaan restok
+            <span class="float-right text-muted text-sm">2 mins</span>
+          </a>
+        </div>
+      </li>
+      <!-- Tasks -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-tasks"></i>
+          <span class="badge badge-info navbar-badge">1</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-clipboard-list mr-2"></i> Verifikasi stok
+          </a>
+        </div>
+      </li>
+      <!-- Fullscreen -->
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="toggleFullScreen()">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </a>
+      </li>
+      <!-- Profile -->
+      <li class="nav-item">
+        <a class="nav-link" href="profile.html"><i class="fas fa-user"></i></a>
+      </li>
+      <!-- Logout -->
+      <li class="nav-item">
+        <a class="nav-link" href="logout.html"><i class="fas fa-sign-out-alt"></i></a>
+      </li>
+    </ul>
+  </nav>
+  
+  <!-- Sidebar -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="index.html" class="brand-link"><span class="brand-text font-weight-light">Kasir PWA</span></a>
+    <div class="sidebar">
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column">
+          <li class="nav-item"><a href="index.html" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p></a></li>
+          <li class="nav-item"><a href="pos.html" class="nav-link"><i class="nav-icon fas fa-cash-register"></i><p>Kasir</p></a></li>
+          <li class="nav-item"><a href="product.html" class="nav-link"><i class="nav-icon fas fa-box"></i><p>Produk</p></a></li>
+          <li class="nav-item"><a href="customer.html" class="nav-link active"><i class="nav-icon fas fa-users"></i><p>Pelanggan</p></a></li>
+          <li class="nav-item"><a href="report.html" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Laporan</p></a></li>
+          <li class="nav-item"><a href="setting.html" class="nav-link"><i class="nav-icon fas fa-cog"></i><p>Pengaturan</p></a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+  <!-- Content -->
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid"><div class="row mb-2"><div class="col-sm-6"><h1><i class="fas fa-users"></i> Manajemen Pelanggan</h1></div></div></div>
+    </section>
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-5">
+            <!-- Form Pelanggan -->
+            <div class="card card-primary"><div class="card-header"><h3 class="card-title"><i class="fas fa-user-plus"></i> Tambah / Edit Pelanggan</h3></div>
+              <div class="card-body">
+                <form @submit.prevent="saveCustomer">
+                  <input type="hidden" v-model="currentCustomer._id">
+                  <input type="hidden" v-model="currentCustomer._rev">
+                  <div class="form-group"><label for="customerName"><i class="fas fa-user-tag"></i> Nama Pelanggan *</label>
+                    <input type="text" class="form-control" id="customerName" ref="customerName" v-model="currentCustomer.name" placeholder="Masukkan nama pelanggan" required>
+                  </div>
+                  <div class="form-group"><label for="customerPhone"><i class="fas fa-phone"></i> Nomor Telepon *</label>
+                    <input type="tel" class="form-control" id="customerPhone" v-model="currentCustomer.phone" placeholder="08123456789" required>
+                  </div>
+                  <div class="form-group"><label for="customerEmail"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" class="form-control" id="customerEmail" v-model="currentCustomer.email" placeholder="email@contoh.com"></div>
+                  <div class="form-group"><label for="customerAddress"><i class="fas fa-map-marker-alt"></i> Alamat</label>
+                    <textarea class="form-control" id="customerAddress" v-model="currentCustomer.address" rows="3" placeholder="Alamat lengkap pelanggan"></textarea></div>
+                  <div class="form-group"><label><i class="fas fa-tags"></i> Kategori Pelanggan</label>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="category" id="regular" value="regular" v-model="currentCustomer.category"><label class="form-check-label" for="regular"><span class="customer-tag tag-regular">Regular</span></label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="category" id="member" value="member" v-model="currentCustomer.category"><label class="form-check-label" for="member"><span class="customer-tag tag-member">Member</span></label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="category" id="premium" value="premium" v-model="currentCustomer.category"><label class="form-check-label" for="premium"><span class="customer-tag tag-premium">Premium</span></label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="category" id="vip" value="vip" v-model="currentCustomer.category"><label class="form-check-label" for="vip"><span class="customer-tag tag-vip">VIP</span></label></div>
+                  </div>
+                  <div class="form-group"><label><i class="fas fa-gift"></i> Poin Loyalitas</label>
+                    <input type="number" class="form-control" v-model.number="currentCustomer.loyaltyPoints" placeholder="0" min="0"></div>
+                  <div class="form-group"><label><i class="fas fa-calendar-check"></i> Tanggal Lahir</label>
+                    <input type="date" class="form-control" v-model="currentCustomer.birthDate"></div>
+                  <div class="form-group"><label><i class="fas fa-comment"></i> Catatan</label>
+                    <textarea class="form-control" v-model="currentCustomer.notes" rows="2" placeholder="Catatan khusus tentang pelanggan ini"></textarea></div>
+                  <div class="form-group"><div class="custom-control custom-switch"><input type="checkbox" class="custom-control-input" id="customerStatus" v-model="currentCustomer.isActive"><label class="custom-control-label" for="customerStatus">Aktifkan Pelanggan</label></div></div>
+                  <div class="form-group text-right"><button type="button" class="btn btn-secondary" @click="resetForm"><i class="fas fa-undo"></i> Reset</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Pelanggan</button></div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <!-- Daftar Pelanggan -->
+            <div class="card card-success">
+              <div class="card-header"><h3 class="card-title"><i class="fas fa-list"></i> Daftar Pelanggan</h3>
+                <div class="card-tools"><div class="input-group input-group-sm quick-search"><i class="fas fa-search"></i><input type="text" class="form-control" placeholder="Cari pelanggan..." v-model="searchQuery"></div></div>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover table-striped">
+                    <thead><tr><th><i class="fas fa-user"></i> Nama</th><th><i class="fas fa-phone"></i> Telepon</th><th><i class="fas fa-tags"></i> Kategori</th><th><i class="fas fa-gift"></i> Poin</th><th>Aksi</th></tr></thead>
+                    <tbody>
+                      <tr v-for="customer in filteredCustomers" :key="customer._id" class="customer-card">
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.category | capitalize }}</td>
+                        <td>{{ customer.loyaltyPoints }}</td>
+                        <td><button class="btn btn-sm btn-info btn-action" @click="editCustomer(customer)"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger btn-action" @click="deleteCustomer(customer._id)"><i class="fas fa-trash"></i></button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card-footer">
+                <input type="file" ref="importFile" style="display:none" @change="handleImportFile">
+                <button class="btn btn-primary" @click="triggerImport"><i class="fas fa-file-import"></i> Import CSV</button>
+                <button class="btn btn-success float-right" @click="exportCustomers"><i class="fas fa-file-export"></i> Export</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Main Footer -->
+  <footer class="main-footer">
+    <strong>Kasir PWA &copy; 2025</strong>
+  </footer>
+</div>
+<!-- Service Worker Registration -->
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/assets/js/service-worker.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+  // Network status monitoring
+  function updateOnlineStatus() {
+    const offlineIndicator = document.getElementById('offlineIndicator');
+    const onlineIndicator = document.getElementById('onlineIndicator');
+    if (navigator.onLine) {
+      offlineIndicator.style.display = 'none';
+      onlineIndicator.style.display = 'block';
+      setTimeout(() => {
+        onlineIndicator.style.display = 'none';
+      }, 3000);
+    } else {
+      offlineIndicator.style.display = 'block';
+    }
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus(); // Initial check
+</script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.min.js"></script>
+<script>
+const customerDB = new PouchDB('kasir_customer_db');
+new Vue({
+  el:'#app',
+  data:{ customers:[], currentCustomer:{ _id:'', _rev:'', type:'customer', name:'', phone:'', email:'', address:'', category:'regular', loyaltyPoints:0, birthDate:'', notes:'', isActive:true, createdAt:'', updatedAt:'' }, searchQuery:'' },
+  computed:{
+    filteredCustomers(){ if(!this.searchQuery) return this.customers; const q=this.searchQuery.toLowerCase(); return this.customers.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q)||(c.email||'').toLowerCase().includes(q)); }
+  },
+  methods:{
+    // --- Metode untuk scroll halus ---
+    smoothScrollToElement(element, duration) {
+        const targetY = window.scrollY + element.getBoundingClientRect().top - window.innerHeight / 4;
+        const startingY = window.scrollY;
+        const diff = targetY - startingY;
+        let start;
+
+        if (!diff) return;
+
+        const step = (timestamp) => {
+            if (!start) start = timestamp;
+            const time = timestamp - start;
+            const percent = Math.min(time / duration, 1);
+
+            const easeInOutQuad = percent < 0.5
+                ? 2 * percent * percent
+                : -1 + (4 - 2 * percent) * percent;
+
+            window.scrollTo(0, startingY + diff * easeInOutQuad);
+
+            if (time >= duration) {
+                setTimeout(() => {
+                    const totalPaymentElement = document.querySelector('.card-body'); // Cari elemen target atas
+                    if (totalPaymentElement) {
+                        const totalPaymentY = window.scrollY + totalPaymentElement.getBoundingClientRect().top - window.innerHeight / 4;
+                        window.scrollTo({
+                            top: totalPaymentY,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 1000);
+                return;
+            }
+
+            window.requestAnimationFrame(step);
+        };
+
+        window.requestAnimationFrame(step);
+    },
+    // -------------------------------
+    
+    async loadCustomers(){ const result=await customerDB.allDocs({include_docs:true}); this.customers=result.rows.map(r=>r.doc).filter(d=>d.type==='customer'); },
+    async saveCustomer(){
+      if(!this.currentCustomer.name||!this.currentCustomer.phone){alert('Nama & telepon wajib.');return;}
+      const dup=this.customers.find(c=>c.phone===this.currentCustomer.phone&&c._id!==this.currentCustomer._id);
+      if(dup){alert('Nomor telepon sudah terdaftar.');return;}
+      const now=new Date().toISOString();
+      this.currentCustomer.updatedAt=now;
+      if(!this.currentCustomer._id){this.currentCustomer._id='C-'+Date.now();this.currentCustomer.createdAt=now;}
+      const res=await customerDB.put(this.currentCustomer);this.currentCustomer._rev=res.rev;await this.loadCustomers();this.resetForm();
+      window.scrollTo({ top: 0, behavior:'smooth' });
+    },
+    editCustomer(c){this.currentCustomer=Object.assign({},c);
+	  this.$nextTick(() => {
+		  const tableBody = document.querySelector('.table tbody');
+		  if (tableBody && tableBody.lastElementChild) {
+			  const targetRow = tableBody.lastElementChild.previousElementSibling || tableBody.lastElementChild;
+			  this.smoothScrollToElement(targetRow, 500);
+		  }
+		  if (this.$refs.customerName) {
+		    this.$refs.customerName.focus();
+		  }
+	  }); 
+    },
+    async deleteCustomer(id){if(!confirm('Hapus?'))return;const doc=await customerDB.get(id);await customerDB.remove(doc);await this.loadCustomers();},
+    resetForm(){this.currentCustomer={ _id:'', _rev:'', type:'customer', name:'', phone:'', email:'', address:'', category:'regular', loyaltyPoints:0, birthDate:'', notes:'', isActive:true, createdAt:'', updatedAt:'' };
+    this.$nextTick(() => {
+        const tableBody = document.querySelector('.table tbody');
+        if (tableBody && tableBody.lastElementChild) {
+          const targetRow = tableBody.lastElementChild.previousElementSibling || tableBody.lastElementChild;
+          this.smoothScrollToElement(targetRow, 500);
+        }
+        if (this.$refs.customerName) {
+          this.$refs.customerName.focus();
+        }
+      });
+    },
+    exportCustomers(){const dataStr=JSON.stringify(this.customers,null,2);const a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(dataStr);a.download='customers.json';a.click();},
+    triggerImport(){this.$refs.importFile.click();},
+    async handleImportFile(e){const file=e.target.files[0];if(!file)return;const text=await file.text();const rows=text.split(/\r?\n/);const headers=rows[0].split(',');for(let i=1;i<rows.length;i++){if(!rows[i])continue;const cols=rows[i].split(',');let cust={type:'customer'};headers.forEach((h,idx)=>cust[h.trim()]=cols[idx]?cols[idx].trim():"");if(!cust._id)cust._id='C-'+Date.now()+"-"+i;cust.createdAt=new Date().toISOString();cust.updatedAt=new Date().toISOString();try{await customerDB.put(cust);}catch(err){console.log(err);} }await this.loadCustomers();alert('Import selesai');}
+  },
+  mounted(){this.loadCustomers();}
+});
+
+// Online/Offline status listener
+window.addEventListener('online',()=>{
+  document.getElementById('onlineIndicator').style.display='block';
+  document.getElementById('offlineIndicator').style.display='none';
+  setTimeout(()=>{document.getElementById('onlineIndicator').style.display='none';},3000);
+});
+window.addEventListener('offline',()=>{
+  document.getElementById('offlineIndicator').style.display='block';
+  document.getElementById('onlineIndicator').style.display='none';
+});
+  
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Struk Pembayaran</title>
+  <style>
+    /* Print Styling - Struk Kasir 58mm */
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      width: 58mm;
+      margin: 0 auto;
+      padding: 8px;
+      font-size: 9pt;
+      line-height: 1.3;
+      color: #000;
+    }
+
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .bold { font-weight: bold; }
+
+    .border-top {
+      border-top: 1px dashed #000;
+      margin: 6px 0;
+    }
+
+    .no-print { display: none; }
+
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+        font-size: 11pt;
+      }
+      .no-print { display: none !important; }
+    }
+
+    .btn-reprint {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14pt;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .btn-reprint:hover {
+      background-color: #0056b3;
+    }
+
+    .item-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9pt;
+    }
+
+    .item-desc {
+      flex: 1;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .item-price {
+      text-align: right;
+      min-width: 60px;
+    }
+  </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0R4XFWJZ22"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0R4XFWJZ22'); // Ganti dengan ID G- Anda
+</script>
+</head>
+<body onload="initPrint()">
+  <div id="struk-content">
+    <div class="text-center bold" id="store-name">Loading...</div>
+    <div class="text-center" id="store-address">Loading...</div>
+    <div class="text-center" id="store-phone">Loading...</div>
+
+    <div class="border-top"></div>
+
+    <div class="text-center">No. Faktur: <span id="invoice-number">-</span></div>
+    <div class="text-center">Waktu: <span id="transaction-time">-</span></div>
+    <div class="text-center">Kasir: <span id="cashier-name">-</span></div>
+    <div class="text-center">Pelanggan: <span id="customer-name">-</span></div>
+    <div class="text-center">Metode: <span id="payment-method">-</span></div>
+
+    <div class="border-top"></div>
+
+    <div id="items-list"></div>
+
+    <div class="border-top"></div>
+
+    <div class="text-right">
+      <div>Total: <span id="total-amount" class="bold">Rp 0</span></div>
+      <!--div>Bayar: <span id="paid-amount">Rp 0</span></div>
+      <div>Kembali: <span id="change-amount">Rp 0</span></div-->
+    </div>
+
+    <div class="border-top"></div>
+
+    <div class="text-center" id="receipt-message">
+      Terima kasih atas kunjungan Anda!
+    </div>
+
+    <div class="text-center" style="margin-top: 15px; font-size: 7pt;">
+      # kasir-pwa.web.app #
+    </div>
+  </div>
+
+  <button class="btn-reprint no-print" onclick="window.print()">🖨️ Cetak Ulang Struk</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.min.js"></script>
+<script>
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/assets/js/service-worker.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+</script>
+  <script>
+    // Database
+    const transactionDB = new PouchDB('kasir_transaction_db');
+    const settingDB = new PouchDB('kasir_setting_db');
+
+    // Format Rupiah
+    function formatRupiah(value) {
+      if (typeof value !== 'number') return 'Rp 0';
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(value);
+    }
+
+    // Ambil ID dari URL
+    function getTransactionIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    // Render item
+    function renderItems(items) {
+      const container = document.getElementById('items-list');
+      container.innerHTML = '';
+
+      (items || []).forEach(item => {
+        const line = document.createElement('div');
+        line.className = 'item-line';
+        line.innerHTML = `
+          <div class="item-desc">${item.name} x${item.qty}</div>
+          <div class="item-price">${formatRupiah(item.subtotal)}</div>
+        `;
+        container.appendChild(line);
+
+        // Opsional: tampilkan detail diskon/pajak jika perlu
+        // (diabaikan karena subtotal sudah final)
+      });
+    }
+
+    // Ambil nama metode pembayaran dari setting
+    async function getPaymentMethodName(paymentMethodCode) {
+      try {
+        const settings = await settingDB.get('setting_store');
+        const method = settings.paymentMethods?.find(m => m.code === paymentMethodCode);
+        return method ? method.name : paymentMethodCode || 'Tunai';
+      } catch (err) {
+        console.warn('Gagal muat metode pembayaran:', err);
+        return paymentMethodCode || 'Tunai';
+      }
+    }
+
+    // Load setting toko (hanya untuk header & pesan)
+    async function loadStoreSettings() {
+      try {
+        const doc = await settingDB.get('setting_store');
+        document.getElementById('store-name').textContent = doc.storeName || 'TOKO';
+        document.getElementById('store-address').textContent = doc.storeAddress || '';
+        document.getElementById('store-phone').textContent = doc.storePhone ? `Telp: ${doc.storePhone}` : '';
+        document.getElementById('receipt-message').textContent = doc.receiptMessage || 'Terima kasih atas kunjungan Anda!';
+        return doc;
+      } catch (err) {
+        console.warn('Setting toko tidak ditemukan');
+        document.getElementById('store-name').textContent = 'TOKO';
+        return {};
+      }
+    }
+
+    // Load transaksi
+    async function loadTransaction(transactionId) {
+      if (!transactionId) {
+        alert('ID transaksi tidak ditemukan!');
+        return null;
+      }
+
+      try {
+        const doc = await transactionDB.get(transactionId);
+
+        // Header transaksi
+        document.getElementById('invoice-number').textContent = doc._id || '-';
+        document.getElementById('transaction-time').textContent = 
+          new Date(doc.transactionDate).toLocaleString('id-ID');
+
+        // Ambil langsung dari transaksi
+        document.getElementById('cashier-name').textContent = doc.cashierName || 'Kasir';
+        document.getElementById('customer-name').textContent = doc.customerName || 'Umum';
+
+        // Metode pembayaran
+        const paymentName = await getPaymentMethodName(doc.paymentMethod);
+        document.getElementById('payment-method').textContent = paymentName;
+
+        // Items
+        renderItems(doc.items);
+
+        // Total
+        const total = doc.grandTotal || 0;
+        document.getElementById('total-amount').textContent = formatRupiah(total);
+        //document.getElementById('paid-amount').textContent = formatRupiah(total); // asumsi bayar pas
+        //document.getElementById('change-amount').textContent = formatRupiah(0);
+
+        return doc;
+      } catch (err) {
+        console.error('Gagal memuat transaksi:', err);
+        alert('Transaksi tidak ditemukan!');
+        return null;
+      }
+    }
+
+    // Inisialisasi
+    async function initPrint() {
+      await loadStoreSettings(); // tetap perlu untuk header toko
+      const id = getTransactionIdFromUrl();
+      await loadTransaction(id);
+
+      // Auto-print
+      setTimeout(() => window.print(), 500);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+Nama database = transaction_db
+Contoh struktur dokumen = 
+{
+  "_id": "trx-250921-273",
+  "type": "transaction",
+  "transactionDate": "2025-09-21T15:30:00Z",
+  "paymentMethod": "tunai",     // Sesuai kode dari setting
+  "cashierId": "cashier-Budi",  // Referensi ke setting/cashier
+  "customerId": "C-001",
+  "totalAmount": 100000,
+  "totalDiscount": 5000,
+  "totalTax": 10000,
+  "grandTotal": 105000,
+  "items": [
+    {
+      "sku": "MI1-123",
+      "name": "Mie Instan",
+      "category": "Makanan",
+      "qty": 5,
+      "price": 3000,
+      "discount": 0,
+      "tax": 150,
+      "subtotal": 15750
+    },
+    {
+      "sku": "TB2-002",
+      "name": "Teh Botol",
+      "category": "Minuman",
+      "qty": 3,
+      "price": 5000,
+      "discount": 500,
+      "tax": 250,
+      "subtotal": 14250
+    }
+  ],
+  "notes": "Transaksi sore",
+  "status": "completed",
+  "createdAt": "2025-09-21T15:30:10Z",
+  "isSynced": false   // Tambahan: untuk tracking sync
+}
+
+
+
+Nama database = product_db
+Contoh struktur dokumen = 
+{
+  "_id": "product-MI1-123",
+  "type": "product",
+  "sku": "MI1-123",
+  "name": "Mie Instan",
+  "categoryId": "mak-826",
+  "costPrice": 2500,
+  "sellPrice": 3000,
+  "stock": 100,
+  "discount": 0,
+  "tax": 0.05,
+  "imageUrl": "https://example.com/mie.jpg",
+  "isActive": true,
+  "createdAt": "2025-09-01T10:00:00Z",
+  "updatedAt": "2025-09-15T11:00:00Z"
+}
+
+
+Nama database = product_category_db
+Conto struktur data = 
+{
+  "_id": "mak-826",
+  "type": "product_category",
+  "name": "Makanan",
+  "order": 1
+}
+
+
+Nama database = customer_db
+{
+  "_id": "C-001",
+  "type": "customer",
+  "name": "Andi Wijaya",
+  "phone": "08123456789",
+  "email": "andi@gmail.com",
+  "address": "Jakarta",
+  "category": "member",
+  "loyaltyPoints": 120,
+  "birthDate": "1990-02-01",
+  "notes": "Suka beli minuman",
+  "isActive": true,
+  "createdAt": "2025-06-01T09:00:00Z",
+  "updatedAt": "2025-09-21T10:00:00Z"
+}
+
+
+
+Nama database = setting_db
+Contoh struktur data = 
+{
+  "_id": "setting_store",
+  "type": "setting",
+  "storeName": "Toko Jaya",
+  "storeAddress": "Jl. Mawar No.10",
+  "storePhone": "021-12345678",
+  "receiptMessage": "Terima kasih telah berbelanja!",
+  "cashiers": [
+    {
+      "id": "cashier-Budi",
+      "name": "Budi",
+      "pin": "1234"  // Jika nanti diperlukan login
+    }
+  ],
+  "paymentMethods": [
+    {
+      "code": "tunai",
+      "name": "Tunai",
+      "isActive": true,
+      "order": 1
+    },
+    {
+      "code": "qris",
+      "name": "QRIS",
+      "isActive": true,
+      "order": 2
+    },
+    {
+      "code": "ewallet",
+      "name": "E-Wallet",
+      "isActive": true,
+      "order": 3
+    },
+    {
+      "code": "transfer",
+      "name": "Transfer Bank",
+      "isActive": false,
+      "order": 4
+    }
+  ],
+  "sync": {
+    "lastSync": "2025-09-21T15:30:00Z",
+    "autoSync": true
+  }
+}
+
+
+{
+  "_id": "sync-2025-09-21T15:30:00Z",
+  "type": "sync_log",
+  "syncType": "manual",  // atau "auto"
+  "success": true,
+  "conflictsResolved": 3,
+  "timestamp": "2025-09-21T15:30:00Z"
+}
+
+
+{
+  "_id": "report-2025-09",
+  "type": "report_cache",
+  "range": "monthly",
+  "startDate": "2025-09-01",
+  "endDate": "2025-09-30",
+  "totalSales": 5000000,
+  "totalTransactions": 100,
+  "topProducts": [
+    {"sku": "MI1-123", "qtySold": 200},
+    {"sku": "TB2-002", "qtySold": 150}
+  ],
+  "paymentBreakdown": {
+    "tunai": 3000000,
+    "qris": 1500000,
+    "ewallet": 500000
+  }
+}
+
+
+{
+  "_id": "notif-20250921-001",
+  "type": "notification",
+  "title": "Stok Menipis",
+  "message": "Produk 'Mie Instan' hanya tersisa 3 unit.",
+  "icon": "fas fa-box",
+  "category": "stock_warning",	// Kategori logis: stock_warning, sync_error, transaction_success, dll
+  "priority": "high", // low | normal | high
+  "read": false,
+  "createdAt": "2025-09-21T14:30:00Z",
+  "relatedId": "product-MI1-123", // opsional: ID produk/transaksi terkait
+  "relatedType": "product" // product | transaction | sync | system
+}
+
+{
+  "_id": "msg-20250921-001",
+  "type": "message",
+  "from": "manager-01",
+  "to": "cashier-Budi",
+  "subject": "Restok Segera",
+  "body": "Stok Teh Botol sudah habis. Mohon segera restok hari ini.",
+  "read": false,
+  "createdAt": "2025-09-21T13:15:00Z",
+  "replied": false,
+  "attachments": [] // opsional: array ID file/gambar
+}
+
+{
+  "_id": "task-20250921-001",
+  "type": "task",
+  "title": "Verifikasi Stok Akhir Bulan",
+  "description": "Lakukan pengecekan fisik stok semua kategori.",
+  "assignedTo": "cashier-Budi",
+  "assignedBy": "manager-01",
+  "status": "pending", // pending | in_progress | completed | cancelled
+  "priority": "medium", // low | medium | high | urgent
+  "dueDate": "2025-09-30T23:59:59Z",
+  "completedAt": null,
+  "createdAt": "2025-09-20T10:00:00Z",
+  "relatedId": null,
+  "relatedType": null
+}
+
+Desain views/index PouchDB:
+{
+  "_id": "_design/sales_by_date",
+  "views": {
+    "by_date": {
+      "map": "function (doc) { if (doc.type === 'transaction' && doc.status === 'completed') { emit(doc.transactionDate.substring(0, 10), doc.grandTotal); } }",
+      "reduce": "_sum"
+    }
+  }
+}
+
+{
+  "_id": "_design/top_products",
+  "views": {
+    "by_sku": {
+      "map": "function (doc) { if (doc.type === 'transaction' && doc.items) { doc.items.forEach(function(item) { emit(item.sku, item.qty); }); } }",
+      "reduce": "_sum"
+    }
+  }
+}
+
+{
+  "_id": "_design/payment_methods",
+  "views": {
+    "by_method": {
+      "map": "function (doc) { if (doc.type === 'transaction' && doc.status === 'completed') { emit(doc.paymentMethod, doc.grandTotal); } }",
+      "reduce": "_sum"
+    }
+  }
+}
+
+{
+  "_id": "_design/sales_by_cashier",
+  "views": {
+    "by_cashier": {
+      "map": "function (doc) { if (doc.type === 'transaction' && doc.status === 'completed') { emit(doc.cashierId, doc.grandTotal); } }",
+      "reduce": "_sum"
+    }
+  }
+}
+
+{
+  "_id": "_design/transactions_by_date",
+  "views": {
+    "by_date": {
+      "map": "function (doc) { if (doc.type === 'transaction') { emit(doc.transactionDate); } }"
+    }
+  }
+}
+
+{
+  "_id": "_design/transactions_by_customer",
+  "views": {
+    "by_customer": {
+      "map": "function (doc) { if (doc.type === 'transaction' && doc.customerId) { emit([doc.customerId, doc.transactionDate], doc._id); } }"
+    }
+  }
+}
+
+{
+  "_id": "_design/products_by_category",
+  "views": {
+    "by_category": {
+      "map": "function (doc) { if (doc.type === 'product' && doc.categoryId) { emit(doc.categoryId); } }"
+    }
+  }
+}
+
+{
+  "_id": "_design/search_product_by_name",
+  "views": {
+    "by_name": {
+      "map": "function (doc) { if (doc.type === 'product' && doc.name) { emit(doc.name.toLowerCase(), null); } }"
+    }
+  }
+}
+
+{
+  "_id": "_design/unsynced_data",
+  "views": {
+    "by_sync_status": {
+      "map": "function (doc) { if (doc.isSynced === false) { emit(doc._id, null); } }"
+    }
+  }
+}
+
+{
+  "_id": "_design/product_stock",
+  "views": {
+    "by_sku": {
+      "map": "function (doc) { if (doc.type === 'product' && doc.sku) { emit(doc.sku, doc.stock); } }"
+    }
+  }
+}
+

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#343a40">
+  <meta name="description" content="Aplikasi Kasir Offline First">
+  <title>Install App - Kasir PWA</title>
+  <!-- Manifest -->
+  <link rel="manifest" href="/assets/json/manifest.json">
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=swap" rel="stylesheet">
+  <style>
+    /* Offline indicator */
+    .offline-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #dc3545;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      z-index: 9999;
+      display: none;
+    }
+    .online-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #28a745;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      z-index: 9999;
+      display: none;
+    }
+    /* Custom Styles for Install Page */
+    .install-guide {
+      text-align: center;
+    }
+    .install-step {
+      margin-bottom: 30px;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #44474a;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      color: #f8f9fa;
+    }
+    .install-step h4 {
+      color: #f8f9fa;
+    }
+    .install-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      color: #007bff;
+    }
+    #installButton {
+      display: none;
+      margin: 20px auto;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #installButton:hover {
+      background-color: #218838;
+    }
+    #installButton:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+    .install-status {
+      display: none;
+      margin: 20px auto;
+      padding: 15px;
+      border-radius: 5px;
+      max-width: 500px;
+    }
+    .install-status.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .install-status.info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    /* AdminLTE Dark Mode Overrides */
+    .dark-mode .card {
+      background-color: #343a40 !important;
+      color: #f8f9fa !important;
+    }
+    .dark-mode .card-header {
+      border-bottom: 1px solid #444;
+    }
+    .dark-mode .breadcrumb-item a {
+      color: #adb5bd;
+    }
+    .dark-mode .breadcrumb-item.active {
+      color: #f8f9fa;
+    }
+  </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0R4XFWJZ22"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0R4XFWJZ22'); // Ganti dengan ID G- Anda
+</script>
+</head>
+<body class="hold-transition sidebar-mini dark-mode">
+<!-- Offline/Online Indicators -->
+<div id="offlineIndicator" class="offline-indicator">
+  <i class="fas fa-wifi-slash"></i> Anda sedang offline. Data akan disimpan secara lokal.
+</div>
+<div id="onlineIndicator" class="online-indicator">
+  <i class="fas fa-wifi"></i> Koneksi tersedia.
+</div>
+<div class="wrapper" id="app">
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-dark">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <!-- Search -->
+      <li class="nav-item">
+        <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+          <i class="fas fa-search"></i>
+        </a>
+        <div class="navbar-search-block">
+          <form class="form-inline">
+            <div class="input-group input-group-sm">
+              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+              <div class="input-group-append">
+                <button class="btn btn-navbar" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </li>
+      <!-- Notification -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-bell"></i>
+          <span class="badge badge-warning navbar-badge">3</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <span class="dropdown-item dropdown-header">3 Notifications</span>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-box text-warning"></i> Stok produk hampir habis
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-check-circle text-success"></i> Transaksi berhasil
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-exclamation-triangle text-danger"></i> Kesalahan sistem
+          </a>
+        </div>
+      </li>
+      <!-- Messages -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-envelope"></i>
+          <span class="badge badge-danger navbar-badge">2</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-envelope mr-2"></i> Permintaan restok
+            <span class="float-right text-muted text-sm">2 mins</span>
+          </a>
+        </div>
+      </li>
+      <!-- Tasks -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-tasks"></i>
+          <span class="badge badge-info navbar-badge">1</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-clipboard-list mr-2"></i> Verifikasi stok
+          </a>
+        </div>
+      </li>
+      <!-- Fullscreen -->
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="toggleFullScreen()">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </a>
+      </li>
+      <!-- Install PWA Button in Navbar -->
+      <li class="nav-item" id="navbarInstallContainer" style="display:none;">
+        <a class="nav-link" href="#" id="navbarInstallButton">
+          <i class="fas fa-download"></i> Install App
+        </a>
+      </li>
+      <!-- Profile -->
+      <li class="nav-item">
+        <a class="nav-link" href="profile.html"><i class="fas fa-user"></i></a>
+      </li>
+      <!-- Logout -->
+      <li class="nav-item">
+        <a class="nav-link" href="logout.html"><i class="fas fa-sign-out-alt"></i></a>
+      </li>
+    </ul>
+  </nav>
+  <!-- Sidebar -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="index.html" class="brand-link">
+      <span class="brand-text font-weight-light">Kasir PWA</span>
+    </a>
+    <div class="sidebar">
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+          <li class="nav-item"><a href="index.html" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p></a></li>
+          <li class="nav-item"><a href="pos.html" class="nav-link"><i class="nav-icon fas fa-cash-register"></i><p>Kasir</p></a></li>
+          <li class="nav-item"><a href="product.html" class="nav-link"><i class="nav-icon fas fa-box"></i><p>Produk</p></a></li>
+          <li class="nav-item"><a href="customer.html" class="nav-link"><i class="nav-icon fas fa-users"></i><p>Pelanggan</p></a></li>
+          <li class="nav-item"><a href="report.html" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Laporan</p></a></li>
+          <li class="nav-item"><a href="setting.html" class="nav-link"><i class="nav-icon fas fa-cog"></i><p>Pengaturan</p></a></li>
+          <li class="nav-item"><a href="install.html" class="nav-link active"><i class="nav-icon fas fa-download"></i><p>Install App</p></a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+  <!-- Content Wrapper -->
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1><i class="fas fa-download"></i> Install Aplikasi</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+              <li class="breadcrumb-item active">Install App</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card card-outline card-info">
+              <div class="card-header">
+                <h3 class="card-title">Pasang Aplikasi di Perangkat Anda</h3>
+              </div>
+              <div class="card-body install-guide">
+                <p class="lead">Dapatkan pengalaman terbaik dengan menginstal aplikasi Kasir PWA ini di perangkat Anda.</p>
+
+                <!-- Install Status Messages -->
+                <div id="installStatus" class="install-status"></div>
+
+                <!-- Install Button (Dynamically shown by JS) -->
+                <button id="installButton" class="btn btn-success btn-lg">
+                  <i class="fas fa-download"></i> Pasang Aplikasi Sekarang
+                </button>
+
+                <!-- Keuntungan Install PWA -->
+                <div class="install-step">
+                  <div class="install-icon">
+                    <i class="fas fa-bolt"></i>
+                  </div>
+                  <h4>Keuntungan Menginstal PWA</h4>
+                  <ul class="text-left" style="list-style-position: inside; padding: 0 20%;">
+                    <li><strong>Akses Lebih Cepat:</strong> Buka aplikasi langsung dari homescreen tanpa membuka browser.</li>
+                    <li><strong>Bekerja Offline:</strong> Tetap bisa digunakan meskipun koneksi internet terputus. Data otomatis disinkronkan saat online.</li>
+                    <li><strong>Tampilan Aplikasi Asli:</strong> Tampilan layar penuh tanpa address bar browser, memberikan pengalaman seperti aplikasi native.</li>
+                    <li><strong>Pemberitahuan Push:</strong> Dapatkan notifikasi penting langsung di perangkat Anda (jika diaktifkan).</li>
+                    <li><strong>Hemat Ruang:</strong> Lebih ringan dibandingkan aplikasi native yang harus diunduh dari toko aplikasi.</li>
+                  </ul>
+                </div>
+
+                <!-- Manual Install Guide -->
+                <div class="install-step">
+                  <div class="install-icon">
+                    <i class="fas fa-question-circle"></i>
+                  </div>
+                  <h4>Panduan Install Manual</h4>
+                  
+                  <!-- Browser Specific Instructions -->
+                  <div class="text-left" style="padding: 0 10%;">
+                    <h5>Chrome / Edge (Desktop):</h5>
+                    <ol>
+                      <li>Klik ikon install <i class="fas fa-download"></i> di address bar (pojok kanan)</li>
+                      <li>Atau buka menu (⋮) → "Install Kasir PWA..."</li>
+                      <li>Klik "Install" pada dialog yang muncul</li>
+                    </ol>
+                    
+                    <h5>Chrome / Edge (Android):</h5>
+                    <ol>
+                      <li>Buka menu browser (⋮) di pojok kanan atas</li>
+                      <li>Pilih "Add to Home screen" atau "Install app"</li>
+                      <li>Konfirmasi pemasangan</li>
+                    </ol>
+                    
+                    <h5>Safari (iOS/iPadOS):</h5>
+                    <ol>
+                      <li>Tap tombol Share <i class="fas fa-share"></i> di bagian bawah</li>
+                      <li>Scroll dan pilih "Add to Home Screen"</li>
+                      <li>Beri nama aplikasi dan tap "Add"</li>
+                    </ol>
+                    
+                    <h5>Firefox:</h5>
+                    <ol>
+                      <li>Buka menu (☰) → "Install..."</li>
+                      <li>Atau klik ikon home dengan plus (+) di address bar</li>
+                      <li>Konfirmasi pemasangan</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <!-- Device Detection Info -->
+                <div class="install-step">
+                  <div class="install-icon">
+                    <i class="fas fa-info-circle"></i>
+                  </div>
+                  <h4>Informasi Perangkat Anda</h4>
+                  <div id="deviceInfo">
+                    <p>Browser: <span id="browserInfo">-</span></p>
+                    <p>Platform: <span id="platformInfo">-</span></p>
+                    <p>PWA Support: <span id="pwaSupport">-</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.min.js"></script>
+<!-- html5-qrcode library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- Howler.js for audio (beep) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+
+<script>
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/assets/js/service-worker.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+
+// ===== NETWORK STATUS MONITORING =====
+function updateOnlineStatus() {
+  const offlineIndicator = document.getElementById('offlineIndicator');
+  const onlineIndicator = document.getElementById('onlineIndicator');
+  
+  if (navigator.onLine) {
+    offlineIndicator.style.display = 'none';
+    onlineIndicator.style.display = 'block';
+    setTimeout(() => {
+      onlineIndicator.style.display = 'none';
+    }, 3000);
+    // Trigger sync when back online
+    syncDatabases();
+  } else {
+    offlineIndicator.style.display = 'block';
+    onlineIndicator.style.display = 'none';
+  }
+}
+
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus(); // Initial check
+
+// ===== DATABASE SYNC =====
+const localDB = new PouchDB('template_db');
+// Only connect to remote if URL is configured
+const remoteDBUrl = 'https://couchdb.test/template_db'; // Change this to your CouchDB URL
+
+function syncDatabases() {
+  if (navigator.onLine && remoteDBUrl && remoteDBUrl !== 'https://couchdb.test/template_db') {
+    try {
+      const remoteDB = new PouchDB(remoteDBUrl);
+      localDB.sync(remoteDB, {
+        live: false,
+        retry: true
+      })
+      .on('complete', function(info) {
+        console.log('Sync completed', info);
+      })
+      .on('error', function(err) {
+        console.error('Sync error:', err);
+      });
+    } catch (error) {
+      console.error('Failed to setup sync:', error);
+    }
+  }
+}
+
+// ===== PWA INSTALLATION =====
+let deferredPrompt = null;
+const installButton = document.getElementById('installButton');
+const navbarInstallButton = document.getElementById('navbarInstallButton');
+const navbarInstallContainer = document.getElementById('navbarInstallContainer');
+const installStatus = document.getElementById('installStatus');
+
+// Check if app is already installed
+function isAppInstalled() {
+  // Check for display-mode
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    return true;
+  }
+  // Check for iOS
+  if (window.navigator.standalone === true) {
+    return true;
+  }
+  return false;
+}
+
+// Update install status
+function updateInstallStatus(message, type = 'info') {
+  installStatus.className = `install-status ${type}`;
+  installStatus.innerHTML = message;
+  installStatus.style.display = 'block';
+}
+
+// Handle install button click
+function handleInstallClick() {
+  if (!deferredPrompt) {
+    updateInstallStatus('Install prompt tidak tersedia. Silakan ikuti panduan manual di bawah.', 'info');
+    return;
+  }
+  
+  // Disable button during installation
+  installButton.disabled = true;
+  installButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menginstall...';
+  
+  // Show the install prompt
+  deferredPrompt.prompt();
+  
+  // Wait for the user to respond
+  deferredPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      console.log('User accepted the install prompt');
+      updateInstallStatus('Aplikasi berhasil diinstall! Anda dapat membukanya dari homescreen.', 'success');
+      installButton.style.display = 'none';
+      navbarInstallContainer.style.display = 'none';
+    } else {
+      console.log('User dismissed the install prompt');
+      updateInstallStatus('Instalasi dibatalkan. Anda dapat menginstall kapan saja.', 'info');
+      installButton.disabled = false;
+      installButton.innerHTML = '<i class="fas fa-download"></i> Pasang Aplikasi Sekarang';
+    }
+    deferredPrompt = null;
+  });
+}
+
+// Listen for beforeinstallprompt event
+window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('beforeinstallprompt event fired');
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // Show install buttons
+  installButton.style.display = 'inline-block';
+  navbarInstallContainer.style.display = 'block';
+  
+  // Add click handlers (remove old ones first to avoid duplicates)
+  installButton.removeEventListener('click', handleInstallClick);
+  installButton.addEventListener('click', handleInstallClick);
+  
+  navbarInstallButton.removeEventListener('click', handleInstallClick);
+  navbarInstallButton.addEventListener('click', handleInstallClick);
+});
+
+// Listen for app installed event
+window.addEventListener('appinstalled', () => {
+  console.log('PWA was installed');
+  updateInstallStatus('Aplikasi berhasil diinstall! Anda dapat membukanya dari homescreen.', 'success');
+  installButton.style.display = 'none';
+  navbarInstallContainer.style.display = 'none';
+  deferredPrompt = null;
+});
+
+// ===== FULLSCREEN TOGGLE =====
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.error('Error attempting to enable fullscreen:', err);
+    });
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+}
+
+// ===== DEVICE DETECTION =====
+function detectDevice() {
+  const browserInfo = document.getElementById('browserInfo');
+  const platformInfo = document.getElementById('platformInfo');
+  const pwaSupport = document.getElementById('pwaSupport');
+  
+// Detect browser
+let browser = 'Unknown';
+const userAgent = navigator.userAgent;
+
+// Cek Edge terlebih dahulu karena UA-nya juga mengandung "Chrome"
+if (userAgent.indexOf('Edg') > -1) {
+  browser = 'Edge';
+}
+// Cek Firefox
+else if (userAgent.indexOf('Firefox') > -1) {
+  browser = 'Firefox';
+}
+// Cek Chrome (pastikan bukan Edge)
+else if (userAgent.indexOf('Chrome') > -1) {
+  browser = 'Chrome';
+}
+// Cek Safari (biasanya jika bukan Chrome/Chromium di macOS/iOS)
+else if (userAgent.indexOf('Safari') > -1) {
+  browser = 'Safari';
+}
+
+browserInfo.textContent = browser;
+ 
+
+// Detect platform
+let platform = 'Unknown';
+
+if (navigator.userAgentData) {
+  // Gunakan API modern
+  platform = navigator.userAgentData.platform;
+} else {
+  // Fallback ke API lama
+  platform = navigator.platform;
+}
+
+// Normalisasi nilai platform agar lebih mudah dibaca pengguna
+const normalizedPlatform = normalizePlatform(platform);
+platformInfo.textContent = normalizedPlatform;
+
+// Fungsi helper untuk menormalisasi nama platform
+function normalizePlatform(rawPlatform) {
+  // Daftar nilai yang menunjukkan perangkat Apple (iOS/iPadOS)
+  const iosDevices = ['iPhone', 'iPad', 'iPod'];
+  // Daftar nilai yang menunjukkan perangkat Windows
+  const windowsDevices = ['Win32', 'Win64', 'Windows'];
+
+  if (iosDevices.includes(rawPlatform)) {
+    return 'iOS';
+  } else if (rawPlatform === 'MacIntel' || rawPlatform === 'MacPPC' || rawPlatform === 'Macintosh') {
+    // Cek khusus untuk Safari di iOS yang kadang melaporkan diri sebagai Mac
+    if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      return 'iOS';
+    }
+    return 'macOS';
+  } else if (windowsDevices.includes(rawPlatform)) {
+    return 'Windows';
+  } else if (rawPlatform.startsWith('Linux')) {
+    return 'Linux';
+  } else if (rawPlatform === 'Android') {
+    return 'Android';
+  } else if (rawPlatform === 'CrOS') {
+    return 'Chrome OS';
+  }
+
+  // Jika tidak cocok dengan daftar di atas, kembalikan nilai aslinya
+  return rawPlatform;
+}
+	
+	
+  // Check PWA support - Enhanced Logic
+  const hasServiceWorker = 'serviceWorker' in navigator;
+  const hasManifest = 'manifest' in document.createElement('link');
+  
+  let pwaStatus = '';
+  
+  if (!hasServiceWorker || !hasManifest) {
+    // Jika komponen dasar tidak ada, memang tidak didukung.
+    pwaStatus = '<span class="text-danger"><i class="fas fa-times"></i> Tidak Didukung</span>';
+  } else {
+    // Komponen dasar ada. Sekarang cek apakah browser kemungkinan besar bisa menampilkan prompt instalasi.
+    // Kita bisa mendeteksi berdasarkan browser.
+    let browser = 'Unknown';
+    const userAgent = navigator.userAgent;
+    if (userAgent.indexOf('Edg') > -1) {
+      browser = 'Edge';
+    } else if (userAgent.indexOf('Firefox') > -1) {
+      browser = 'Firefox';
+    } else if (userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1) {
+      browser = 'Chrome';
+    } else if (userAgent.indexOf('Safari') > -1 && userAgent.indexOf('Chrome') === -1) {
+      browser = 'Safari';
+    }
+
+    if (browser === 'Safari') {
+      // Safari mendukung PWA tapi instalasi manual.
+      pwaStatus = '<span class="text-warning"><i class="fas fa-info-circle"></i> Didukung (Instal Manual)</span>';
+    } else if (browser === 'Chrome' || browser === 'Edge' || browser === 'Firefox') {
+      // Browser ini biasanya punya prompt otomatis jika kriteria terpenuhi.
+      pwaStatus = '<span class="text-success"><i class="fas fa-check"></i> Didukung (Instal Otomatis)</span>';
+    } else {
+      // Browser lain yang mendukung komponen dasar.
+      pwaStatus = '<span class="text-success"><i class="fas fa-check"></i> Didukung</span>';
+    }
+  }
+
+  pwaSupport.innerHTML = pwaStatus;
+}
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if app is already installed
+  if (isAppInstalled()) {
+    updateInstallStatus('Aplikasi sudah terinstall! Buka dari homescreen untuk pengalaman terbaik.', 'success');
+    installButton.style.display = 'none';
+    navbarInstallContainer.style.display = 'none';
+  }
+  
+  // Detect device info
+  detectDevice();
+  
+  // Initial sync
+  syncDatabases();
+});
+
+// Periodic sync every 5 minutes when online
+setInterval(() => {
+  if (navigator.onLine) {
+    syncDatabases();
+  }
+}, 300000); // 5 minutes
+</script>
+</body>
+</html>

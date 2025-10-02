@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#343a40" />
+  <meta name="description" content="Aplikasi Kasir Offline First" />
+  <title>Input Produk - Kasir PWA</title>
+  <link rel="manifest" href="/assets/json/manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/assets/img/icon-192x192.png" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.7/awesomplete.min.css" />
+  <link rel="stylesheet" href="/assets/css/awesomplete.dark.css" />
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=swap" rel="stylesheet">
+  <style>
+    .offline-indicator {
+      position: relative; top:0; left:0; right:0;
+      background:#dc3545; color:#fff; text-align:center; padding:10px; z-index:9999; display:none;
+    }
+    .online-indicator {
+      position: relative; top:0; left:0; right:0;
+      background:#28a745; color:#fff; text-align:center; padding:10px; z-index:9999; display:none;
+    }
+  </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0R4XFWJZ22"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0R4XFWJZ22'); // Ganti dengan ID G- Anda
+</script>
+</head>
+<body class="hold-transition sidebar-mini dark-mode">
+  <div id="offlineIndicator" class="offline-indicator"><i class="fas fa-wifi-slash"></i> Anda sedang offline. Data akan disimpan secara lokal.</div>
+  <div id="onlineIndicator" class="online-indicator"><i class="fas fa-wifi"></i> Koneksi tersedia.</div>
+  <div class="wrapper" id="app">
+    <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-dark">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <!-- Navbar Search -->
+      <li class="nav-item">
+        <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+          <i class="fas fa-search"></i>
+        </a>
+        <div class="navbar-search-block">
+          <form class="form-inline">
+            <div class="input-group input-group-sm">
+              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+              <div class="input-group-append">
+                <button class="btn btn-navbar" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </li>
+      <!-- Notification -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-bell"></i>
+          <span class="badge badge-warning navbar-badge">3</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <span class="dropdown-item dropdown-header">3 Notifications</span>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-box text-warning"></i> Stok produk hampir habis
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-check-circle text-success"></i> Transaksi berhasil
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-exclamation-triangle text-danger"></i> Kesalahan sistem
+          </a>
+        </div>
+      </li>
+      <!-- Messages -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-envelope"></i>
+          <span class="badge badge-danger navbar-badge">2</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-envelope mr-2"></i> Permintaan restok
+            <span class="float-right text-muted text-sm">2 mins</span>
+          </a>
+        </div>
+      </li>
+      <!-- Tasks -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-tasks"></i>
+          <span class="badge badge-info navbar-badge">1</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-clipboard-list mr-2"></i> Verifikasi stok
+          </a>
+        </div>
+      </li>
+      <!-- Fullscreen -->
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="toggleFullScreen()">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </a>
+      </li>
+      <!-- Profile -->
+      <li class="nav-item">
+        <a class="nav-link" href="profile.html"><i class="fas fa-user"></i></a>
+      </li>
+      <!-- Logout -->
+      <li class="nav-item">
+        <a class="nav-link" href="logout.html"><i class="fas fa-sign-out-alt"></i></a>
+      </li>
+    </ul>
+  </nav>
+    <!-- Sidebar -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+      <a href="index.html" class="brand-link"><span class="brand-text font-weight-light">Kasir PWA</span></a>
+      <div class="sidebar">
+        <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p></a></li>
+            <li class="nav-item"><a href="pos.html" class="nav-link"><i class="nav-icon fas fa-cash-register"></i><p>Kasir</p></a></li>
+            <li class="nav-item"><a href="product.html" class="nav-link active"><i class="nav-icon fas fa-box"></i><p>Produk</p></a></li>
+            <li class="nav-item"><a href="customer.html" class="nav-link"><i class="nav-icon fas fa-users"></i><p>Pelanggan</p></a></li>
+            <li class="nav-item"><a href="report.html" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Laporan</p></a></li>
+            <li class="nav-item"><a href="setting.html" class="nav-link"><i class="nav-icon fas fa-cog"></i><p>Pengaturan</p></a></li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+    <!-- Content -->
+    <div class="content-wrapper p-4">
+      <div class="container-fluid">
+        <h3><i class="fas fa-box"></i> Input Produk</h3>
+        <div class="card">
+          <div class="card-body">
+            <form @submit.prevent="saveProduct">
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="productNameInput">Nama Produk</label>
+                  <input id="productNameInput" ref="productNameInput" type="text" class="form-control" list="productNamesList" v-model.trim="product.name" required autocomplete="off">
+                  <datalist id="productNamesList">
+                    <option v-for="name in productNames" :key="name" :value="name">{{ name }}</option>
+                  </datalist>
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Kode / SKU</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" v-model.trim="product.sku" placeholder="Biarkan kosong untuk generate otomatis">
+                    <div class="input-group-append">
+                      <button class="btn btn-outline-secondary" type="button" @click="openScanner"><i class="fas fa-barcode"></i></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="categoryInput">Kategori</label>
+                  <input id="categoryInput" type="text" class="form-control awesomplete-input" list="categoriesList" v-model.trim="categoryName" autocomplete="off" placeholder="Pilih atau ketik nama kategori">
+                  <datalist id="categoriesList">
+                    <option v-for="cat in categories" :key="cat._id" :value="cat.name">{{ cat.name }}</option>
+                  </datalist>
+                </div>
+                <div class="form-group col-md-4">
+                  <label>Harga Pokok</label>
+                  <input type="number" class="form-control" v-model.number="product.costPrice" min="0">
+                </div>
+                <div class="form-group col-md-4">
+                  <label>Harga Jual</label>
+                  <input type="number" class="form-control" v-model.number="product.sellPrice" min="0" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-3">
+                  <label>Stok</label>
+                  <input type="number" class="form-control" v-model.number="product.stock" min="0">
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Pajak (%)</label>
+                  <input type="number" class="form-control" v-model.number="product.tax" min="0" step="0.01">
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Diskon (%)</label>
+                  <input type="number" class="form-control" v-model.number="product.discount" min="0" step="0.01">
+                </div>
+                <div class="form-group col-md-3">
+                  <label>URL Foto Produk</label>
+                  <input type="url" class="form-control" v-model.trim="product.imageUrl" placeholder="https://example.com/image.jpg">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Produk</button>
+              <button type="button" class="btn btn-secondary ml-2" @click="resetForm">Reset</button>
+            </form>
+          </div>
+        </div>
+        <!-- Product List -->
+        <div class="card mt-4">
+          <div class="card-header"><h5>Daftar Produk</h5></div>
+          <div class="card-body table-responsive p-0">
+            <table class="table table-hover text-nowrap">
+              <thead>
+                <tr><th>Nama</th><th>SKU</th><th>Harga</th><th>Stok</th><th>Kategori</th><th>Aksi</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in products" :key="item._id">
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.sku }}</td>
+                  <td align="right">
+                    Rp {{ formatNumber(item.sellPrice) }}<br />
+                    <sup class="text-gray"><em>Rp {{ formatNumber(item.costPrice) }}</em></sup>
+                  </td>
+                  <td>{{ item.stock }}</td>
+                  <td>{{ categoryNameById(item.categoryId) }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-danger" @click="deleteProduct(item)" title="Hapus Produk"><i class="fas fa-trash"></i></button>
+                  </td>
+                </tr>
+                <tr v-if="products.length === 0"><td colspan="6" class="text-center">Belum ada produk.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Scanner modal container (dimuat via fetch agar reuse) -->
+      <div id="scanner-container"></div>
+      <script>
+        // Muat modal scanner jika ada file html-nya (opsional)
+        fetch('/assets/html/scanner-modal.html').then(r => { if(r.ok) return r.text(); throw new Error('no scanner modal'); })
+          .then(html => document.getElementById('scanner-container').innerHTML = html)
+          .catch(()=>{/* ignore if not present */});
+      </script>
+    </div>
+  <!-- Main Footer -->
+  <footer class="main-footer">
+    <strong>Kasir PWA &copy; 2025</strong>
+  </footer>
+  </div>
+  <script>
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/assets/js/service-worker.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+    function updateOnlineStatus() {
+      const offlineIndicator = document.getElementById('offlineIndicator');
+      const onlineIndicator = document.getElementById('onlineIndicator');
+      if (navigator.onLine) {
+        offlineIndicator.style.display = 'none';
+        onlineIndicator.style.display = 'block';
+        setTimeout(()=> onlineIndicator.style.display = 'none', 2500);
+      } else {
+        offlineIndicator.style.display = 'block';
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+  </script>
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.find.min.js"></script>
+  <script> PouchDB.plugin(PouchDB.find); </script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="/assets/js/scanner.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.7/awesomplete.min.js"></script>
+  <script>
+    // Local & remote DB instances
+    const localDB = new PouchDB('kasir_product_db');
+    // Sesuaikan URL CouchDB Anda
+    const remoteDB = new PouchDB('https://couchdb.test/kasir_product_db');
+    const categoryLocalDB = new PouchDB('kasir_product_category_db');
+    const categoryRemoteDB = new PouchDB('https://couchdb.test/kasir_product_category_db'); // Sesuaikan port jika berbeda
+    // Sync helper (dipanggil saat online)
+    function syncDatabases() {
+      if (!navigator.onLine) return;
+      localDB.sync(remoteDB).on('complete', ()=>console.log('kasir_product_db sync complete')).on('error', err=>console.warn('kasir_product_db sync error', err));
+      categoryLocalDB.sync(categoryRemoteDB).on('complete', ()=>console.log('category_db sync complete')).on('error', err=>console.warn('category_db sync error', err));
+    }
+    window.addEventListener('online', syncDatabases);
+    // Sounds (simple fallback)
+    let successSound, failSound;
+    function initSounds() {
+      const beepData = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA";
+      successSound = new Howl({ src: ['/assets/mp3/beep-success.mp3', beepData], volume:0.5 });
+      failSound = new Howl({ src: ['/assets/mp3/beep-failed.mp3', beepData], volume:0.5 });
+    }
+    // Vue App
+    let app = new Vue({
+      el: '#app',
+      data: {
+        product: {
+          sku: '',
+          name: '',
+          categoryId: null,
+          costPrice: 0,
+          sellPrice: 0,
+          stock: 0,
+          tax: 0,
+          discount: 0,
+          imageUrl: '',
+          isActive: true,
+          createdAt: null,
+          updatedAt: null
+        },
+        // Temporary category name input (user-facing). Will be resolved to categoryId on save.
+        categoryName: '',
+        products: [],
+        productNames: [],
+        categories: [], // array of category docs { _id, type:'product_category', name, order? }
+        html5QrcodeScanner: null
+      },
+      methods: {
+        // --- Metode untuk scroll halus ---
+         smoothScrollToElement(element, duration) {
+            const targetY = window.scrollY + element.getBoundingClientRect().top - window.innerHeight / 4;
+            const startingY = window.scrollY;
+            const diff = targetY - startingY;
+            let start;
+            if (!diff) return;
+            const step = (timestamp) => {
+                if (!start) start = timestamp;
+                const time = timestamp - start;
+                const percent = Math.min(time / duration, 1);
+                const easeInOutQuad = percent < 0.5
+                    ? 2 * percent * percent
+                    : -1 + (4 - 2 * percent) * percent;
+                window.scrollTo(0, startingY + diff * easeInOutQuad);
+                if (time >= duration) {
+                    setTimeout(() => {
+                        const totalPaymentElement = document.querySelector('.form-group'); // Cari elemen target atas
+                        if (totalPaymentElement) {
+                            const totalPaymentY = window.scrollY + totalPaymentElement.getBoundingClientRect().top - window.innerHeight / 4;
+                            window.scrollTo({
+                                top: totalPaymentY,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 1000);
+                    return;
+                }
+                window.requestAnimationFrame(step);
+            };
+            window.requestAnimationFrame(step);
+        },
+        // -------------------------------
+        formatNumber(n) {
+          if (n === null || n === undefined) return '0';
+          return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        },
+        categoryNameById(id) {
+          if (!id) return '-';
+          const c = this.categories.find(x => x._id === id);
+          return c ? c.name : '-';
+        },
+        generateSKU() {
+          const base = (this.categoryName || this.product.name || 'SKU').toString().replace(/\s+/g, '').substr(0,3).toUpperCase();
+          const random = Math.floor(Math.random()*90000)+10000;
+          return `${base}-${random}`;
+        },
+        async saveProduct() {
+          // Basic validation
+          if (!this.product.name || !this.product.sellPrice) {
+            alert('Nama produk dan harga jual wajib diisi.');
+            return;
+          }
+          // set/generate SKU
+          if (!this.product.sku || !this.product.sku.trim()) {
+            this.product.sku = this.generateSKU();
+          } else {
+            this.product.sku = this.product.sku.trim();
+          }
+          
+      // Validasi keunikan SKU (opsional, bisa ditingkatkan)
+      try {
+          const existing = await localDB.find({
+            selector: { sku: this.product.sku }
+          });
+          if (existing.docs.length > 0) {
+            alert('SKU sudah digunakan. Silakan gunakan SKU lain.');
+            return;
+          }
+      } catch (err) {
+          console.warn('Gagal memeriksa keunikan SKU (pouchdb-find mungkin tidak tersedia atau error):', err);
+      }          
+          
+          // Resolve or create category: find by name (case-insensitive)
+          let resolvedCategoryId = null;
+          if (this.categoryName && this.categoryName.trim() !== '') {
+            const nameTrim = this.categoryName.trim();
+            const found = this.categories.find(c => c.name.toLowerCase() === nameTrim.toLowerCase());
+            if (found) {
+              resolvedCategoryId = found._id;
+            } else {
+              // create new category doc _id: use timestamp-based id
+              const now = new Date().toISOString();
+              const newCat = {
+                _id: 'cat-' + now.replace(/\D/g, ''), // Clean timestamp for ID
+                type: 'product_category',
+                name: nameTrim,
+                createdAt: now
+              };
+              try {
+                const res = await categoryLocalDB.put(newCat);
+                newCat._rev = res.rev;
+                this.categories.push(newCat);
+                resolvedCategoryId = newCat._id;
+              } catch (err) {
+                console.warn('Gagal membuat kategori baru:', err);
+                // try to search again for race conditions
+                try {
+                  const rows = await categoryLocalDB.allDocs({ include_docs:true });
+                  this.categories = rows.rows.map(r=>r.doc).filter(d=>d && (d.type === 'product_category' || d.type === 'category'));
+                  const found2 = this.categories.find(c => c.name.toLowerCase() === nameTrim.toLowerCase());
+                  if (found2) resolvedCategoryId = found2._id;
+                } catch(e){ console.warn('Retry fetching categories failed', e); }
+              }
+            }
+          }
+          // Build product doc
+          const now = new Date().toISOString();
+          const docId = 'product-' + this.product.sku;
+          // check existence to avoid conflict
+          try {
+            const existing = await localDB.get(docId).catch(()=>null);
+            const productDoc = {
+              _id: docId,
+              type: 'product',
+              sku: this.product.sku,
+              name: this.product.name,
+              categoryId: resolvedCategoryId,
+              costPrice: Number(this.product.costPrice) || 0,
+              sellPrice: Number(this.product.sellPrice) || 0,
+              stock: Number(this.product.stock) || 0,
+              discount: Number(this.product.discount) || 0,
+              tax: Number(this.product.tax) || 0,
+              imageUrl: this.product.imageUrl || '',
+              isActive: (this.product.isActive === undefined) ? true : !!this.product.isActive,
+              createdAt: existing ? existing.createdAt || now : now,
+              updatedAt: now
+            };
+            if (existing && existing._rev) {
+              productDoc._rev = existing._rev;
+            }
+            const putRes = await localDB.put(productDoc);
+            if (putRes.ok) {
+              if (successSound) successSound.play();
+              // reload products
+              await this.fetchProducts();
+              // reset form
+              this.resetForm();
+              // sync
+              syncDatabases();
+              alert('Produk tersimpan.');
+            } else {
+              if (failSound) failSound.play();
+              alert('Gagal menyimpan produk.');
+            }
+          } catch (err) {
+            console.error('Error saveProduct', err);
+            alert('Terjadi error saat menyimpan produk. Lihat console.');
+          }
+        },
+        async fetchProducts() {
+          try {
+            const res = await localDB.allDocs({ include_docs:true });
+            this.products = res.rows.map(r=>r.doc).filter(d=>d && d.type === 'product');
+            this.productNames = this.products.map(d=>d.name).filter(Boolean);
+            // Sort products by name
+            this.products.sort((a,b)=> (a.name||'').localeCompare(b.name||''));
+          } catch (err) {
+            console.warn('fetchProducts error', err);
+            this.products = [];
+            this.productNames = [];
+          }
+        },
+        async fetchCategories() {
+          try {
+            const res = await categoryLocalDB.allDocs({ include_docs:true });
+            this.categories = res.rows.map(r=>r.doc).filter(d=>d && (d.type === 'product_category' || d.type === 'category'));
+            // Sort categories by name
+            this.categories.sort((a,b)=> (a.name||'').localeCompare(b.name||''));
+          } catch (err) {
+            console.warn('fetchCategories error', err);
+            this.categories = [];
+          }
+        },
+        async deleteProduct(item) {
+          if (!confirm(`Anda yakin ingin menghapus produk "${item.name}"?`)) return;
+          try {
+            const doc = await localDB.get(item._id);
+            await localDB.remove(doc);
+            await this.fetchProducts();
+            alert('Produk berhasil dihapus.');
+            syncDatabases();
+          } catch (err) {
+            console.error('Error deleting product', err);
+            alert('Gagal menghapus produk.');
+          }
+        },
+        resetForm() {
+          this.product = {
+            sku: '',
+            name: '',
+            categoryId: null,
+            costPrice: 0,
+            sellPrice: 0,
+            stock: 0,
+            tax: 0,
+            discount: 0,
+            imageUrl: '',
+            isActive: true,
+            createdAt: null,
+            updatedAt: null
+          };
+          this.categoryName = '';
+          this.$nextTick(() => {
+            const tableBody = document.querySelector('.table tbody');
+            if (tableBody && tableBody.lastElementChild) {
+              const targetRow = tableBody.lastElementChild.previousElementSibling || tableBody.lastElementChild;
+              this.smoothScrollToElement(targetRow, 500);
+            }
+            if (this.$refs.productNameInput) {
+              this.$refs.productNameInput.focus();
+            }
+          });
+        },
+        // scanner related
+        openScanner() {
+          $('#scannerModal').modal('show');
+          this.startQRScanner(); // Panggil start langsung
+        },
+        startQRScanner() {
+          if (!this.html5QrcodeScanner) {
+            this.html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: { width:250, height:250 } }, false);
+            this.html5QrcodeScanner.render(this.onScanSuccess.bind(this), this.onScanFailure.bind(this));
+          }
+        },
+        stopQRScanner() {
+          if (this.html5QrcodeScanner) {
+            this.html5QrcodeScanner.clear().then(() => { this.html5QrcodeScanner = null; }).catch(e => console.warn('stopQR error', e));
+          }
+          $('#scannerModal').modal('hide');
+        },
+        onScanSuccess(decodedText, decodedResult) {
+          if (successSound) successSound.play();
+          this.stopQRScanner(); // Stop dan tutup modal saat sukses
+          this.product.sku = decodedText.trim();
+        },
+        onScanFailure(err) {
+          console.warn('QR scan fail', err);
+        }
+      },
+      async created() {
+        initSounds();
+        await this.fetchCategories();
+        await this.fetchProducts();
+        // initial sync attempt
+        syncDatabases();
+        // create basic index for faster searches if needed
+        try {
+          await localDB.createIndex({ index: { fields: ['sku', 'type', 'name'] } });
+          await categoryLocalDB.createIndex({ index: { fields: ['name', 'type'] } });
+        } catch(e){ /* ignore */ }
+      },
+      beforeDestroy() {
+        if (this.html5QrcodeScanner) this.stopQRScanner();
+      }
+    });
+    // full screen helper
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else if (document.exitFullscreen) document.exitFullscreen();
+    }
+  </script>
+</body>
+</html>

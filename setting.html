@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#343a40">
+  <meta name="description" content="Pengaturan Aplikasi Kasir Offline First">
+  <title>Pengaturan - Kasir PWA</title>
+  <!-- Manifest -->
+  <link rel="manifest" href="/assets/json/manifest.json">
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=swap" rel="stylesheet">
+  <!-- Intro.js CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css" rel="stylesheet">
+  <!-- Intro.js Theme (Dark Mode Friendly) -->
+  <style>
+    .introjs-helperLayer {
+      background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+    .introjs-tooltip {
+      background-color: #343a40 !important;
+      color: #fff !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .introjs-button {
+      background-color: #007bff !important;
+      border: none !important;
+      border-radius: 4px;
+    }
+    .introjs-skipbutton {
+      color: #ccc !important;
+      font-size: 14px;
+    }
+    .introjs-prevbutton {
+      background-color: #6c757d !important;
+    }
+  </style>
+  <style>
+    /* Offline indicator */
+    .offline-indicator {
+      position: relative;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #dc3545;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      z-index: 9999;
+      display: none;
+    }
+    .online-indicator {
+      position: relative;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #28a745;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      z-index: 9999;
+      display: none;
+    }
+    .payment-method-item {
+        border: 1px solid #33e236;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        background-color: #38393a;
+    }
+    .btn-remove-method {
+        background-color: #dc3545;
+        color: white;
+    }
+    .btn-remove-method:hover {
+        background-color: #c82333;
+    }
+  </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0R4XFWJZ22"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0R4XFWJZ22'); // Ganti dengan ID G- Anda
+</script>
+</head>
+<body class="hold-transition sidebar-mini dark-mode">
+<!-- Offline/Online Indicators -->
+<div id="offlineIndicator" class="offline-indicator">
+  <i class="fas fa-wifi-slash"></i> Anda sedang offline. Data akan disimpan secara lokal.
+</div>
+<div id="onlineIndicator" class="online-indicator">
+  <i class="fas fa-wifi"></i> Koneksi tersedia.
+</div>
+<div class="wrapper" id="app">
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-dark">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <!-- Search -->
+      <!-- Navbar Search -->
+      <li class="nav-item">
+        <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+          <i class="fas fa-search"></i>
+        </a>
+        <div class="navbar-search-block">
+          <form class="form-inline">
+            <div class="input-group input-group-sm">
+              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+              <div class="input-group-append">
+                <button class="btn btn-navbar" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </li>
+      <!-- Notification -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-bell"></i>
+          <span class="badge badge-warning navbar-badge">3</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <span class="dropdown-item dropdown-header">3 Notifications</span>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-box text-warning"></i> Stok produk hampir habis
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-check-circle text-success"></i> Transaksi berhasil
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-exclamation-triangle text-danger"></i> Kesalahan sistem
+          </a>
+        </div>
+      </li>
+      <!-- Messages -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-envelope"></i>
+          <span class="badge badge-danger navbar-badge">2</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-envelope mr-2"></i> Permintaan restok
+            <span class="float-right text-muted text-sm">2 mins</span>
+          </a>
+        </div>
+      </li>
+      <!-- Tasks -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-tasks"></i>
+          <span class="badge badge-info navbar-badge">1</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-clipboard-list mr-2"></i> Verifikasi stok
+          </a>
+        </div>
+      </li>
+      <!-- Fullscreen -->
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="toggleFullScreen()">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </a>
+      </li>
+      <!-- Profile -->
+      <li class="nav-item">
+        <a class="nav-link" href="profile.html"><i class="fas fa-user"></i></a>
+      </li>
+      <!-- Logout -->
+      <li class="nav-item">
+        <a class="nav-link" href="logout.html"><i class="fas fa-sign-out-alt"></i></a>
+      </li>
+    </ul>
+  </nav>
+  <!-- Sidebar -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="index.html" class="brand-link">
+      <span class="brand-text font-weight-light">Kasir PWA</span>
+    </a>
+    <div class="sidebar">
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+          <li class="nav-item"><a href="index.html" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p></a></li>
+          <li class="nav-item"><a href="pos.html" class="nav-link"><i class="nav-icon fas fa-cash-register"></i><p>Kasir</p></a></li>
+          <li class="nav-item"><a href="product.html" class="nav-link"><i class="nav-icon fas fa-box"></i><p>Produk</p></a></li>
+          <li class="nav-item"><a href="customer.html" class="nav-link"><i class="nav-icon fas fa-users"></i><p>Pelanggan</p></a></li>
+          <li class="nav-item"><a href="report.html" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Laporan</p></a></li>
+          <li class="nav-item"><a href="setting.html" class="nav-link active"><i class="nav-icon fas fa-cog"></i><p>Pengaturan</p></a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+  <!-- Content Wrapper -->
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1><i class="fas fa-cog"></i> Pengaturan</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+              <li class="breadcrumb-item active">Pengaturan</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-12">
+            <!-- Card Identitas Toko & Struk -->
+            <div class="card card-info">
+              <div class="card-header">
+                <h3 class="card-title">Identitas Toko & Struk</h3>
+              </div>
+              <div class="card-body">
+                <form id="storeSettingsForm">
+                  <div class="form-row">				
+                    <div class="form-group col-md-4" data-intro="2/2# Input identitas toko dan data struk lainnya" data-step="2">
+                      <label for="storeName">Nama Toko:</label>
+                      <input type="text" class="form-control" id="storeName" placeholder="Masukkan nama toko" required>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label for="storeAddress">Alamat Toko:</label>
+                      <textarea class="form-control" id="storeAddress" rows="2" placeholder="Masukkan alamat toko"></textarea>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label for="storePhone">Telepon Toko:</label>
+                      <input type="text" class="form-control" id="storePhone" placeholder="Masukkan nomor telepon">
+                    </div>
+                  </div>
+                  <div class="form-row">	
+                    <div class="form-group col-md-6">
+                      <label for="cashierName">Nama Kasir (Default):</label>
+                      <input type="text" class="form-control" id="cashierName" placeholder="Masukkan nama kasir default">
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label for="receiptMessage">Ucapan di Struk:</label>
+                      <textarea class="form-control" id="receiptMessage" rows="3" placeholder="Masukkan ucapan yang akan tampil di bagian bawah struk (e.g., Terima kasih atas kunjungan Anda!)"></textarea>
+                    </div>
+                  </div>	
+                  <button type="submit" class="btn btn-primary">Simpan Pengaturan Toko</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Card Metode Pembayaran -->
+            <div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title">Metode Pembayaran</h3>
+              </div>
+              <div class="card-body">
+                <form id="paymentMethodsForm">
+                  <div id="paymentMethodsContainer">
+                    <!-- Payment methods will be dynamically inserted here -->
+                  </div>
+                  <button type="button" id="addPaymentMethod" class="btn btn-success mb-3">
+                    <i class="fas fa-plus"></i> Tambah Metode Pembayaran
+                  </button>
+                  <br>
+                  <button type="submit" class="btn btn-primary" data-intro="1/2# Langsung klik Simpan atau tambahkan opsi metoda pembayaran lainnya" data-step="1">Simpan Metode Pembayaran</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Main Footer -->
+  <footer class="main-footer">
+    <strong>Kasir PWA &copy; 2025</strong>
+  </footer>
+</div>
+<!-- Service Worker Registration -->
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/assets/js/service-worker.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+  // Network status monitoring
+  function updateOnlineStatus() {
+    const offlineIndicator = document.getElementById('offlineIndicator');
+    const onlineIndicator = document.getElementById('onlineIndicator');
+    if (navigator.onLine) {
+      offlineIndicator.style.display = 'none';
+      onlineIndicator.style.display = 'block';
+      setTimeout(() => {
+        onlineIndicator.style.display = 'none';
+      }, 3000);
+    } else {
+      offlineIndicator.style.display = 'block';
+    }
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus(); // Initial check
+</script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.min.js"></script>
+<!-- html5-qrcode library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- Howler.js for audio (beep) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+<!-- Intro.js JS -->
+<script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
+<script>
+// Inisialisasi PouchDB
+const localDB = new PouchDB('kasir_setting_db');
+const remoteDB = new PouchDB('https://couchdb.test/kasir_setting_db');
+
+// Doc ID untuk settings
+const SETTINGS_DOC_ID = 'setting_store';
+
+// Fungsi untuk memuat pengaturan dari PouchDB
+async function loadSettings() {
+    try {
+        const doc = await localDB.get(SETTINGS_DOC_ID);
+        
+        // Load store settings
+        document.getElementById('storeName').value = doc.storeName || '';
+        document.getElementById('storeAddress').value = doc.storeAddress || '';
+        document.getElementById('storePhone').value = doc.storeName || '';
+        document.getElementById('cashierName').value = doc.cashierName || '';
+        document.getElementById('receiptMessage').value = doc.receiptMessage || '';
+        
+        // Load payment methods
+        const paymentMethods = doc.paymentMethods || [];
+        const container = document.getElementById('paymentMethodsContainer');
+        container.innerHTML = '';
+        
+        paymentMethods.forEach((method, index) => {
+            addPaymentMethodField(method, index);
+        });
+        
+    } catch (err) {
+        if (err.status === 404) {
+            console.log("Dokumen pengaturan belum ada, menggunakan default.");
+            // Add default payment methods
+            addPaymentMethodField({code: 'tunai', name: 'Tunai', isActive: true, order: 1}, 0);
+            addPaymentMethodField({code: 'qris', name: 'QRIS', isActive: true, order: 2}, 1);
+            addPaymentMethodField({code: 'transfer', name: 'Transfer Bank', isActive: false, order: 3}, 2);
+        } else {
+            console.error("Gagal memuat pengaturan:", err);
+            alert("Gagal memuat pengaturan: " + err.message);
+        }
+    }
+}
+
+// Fungsi untuk menambahkan field metode pembayaran
+function addPaymentMethodField(method = {}, index) {
+    const container = document.getElementById('paymentMethodsContainer');
+    const methodDiv = document.createElement('div');
+    methodDiv.className = 'payment-method-item';
+    methodDiv.innerHTML = `
+        <div class="form-row">
+            <div class="form-group col-md-3">
+                <label>Kode Metode:</label>
+                <input type="text" class="form-control payment-code" value="${method.code || ''}" placeholder="Contoh: cash, qris" required>
+            </div>
+            <div class="form-group col-md-4">
+                <label>Nama Metode:</label>
+                <input type="text" class="form-control payment-name" value="${method.name || ''}" placeholder="Contoh: Cash, QRIS" required>
+            </div>
+            <div class="form-group col-md-2">
+                <label>Aktif:</label>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input payment-active" ${method.isActive ? 'checked' : ''}>
+                    <label class="form-check-label">Ya</label>
+                </div>
+            </div>
+            <div class="form-group col-md-2">
+                <label>Urutan:</label>
+                <input type="number" class="form-control payment-order" value="${method.order || (index + 1)}" min="1">
+            </div>
+            <div class="form-group col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-remove-method btn-sm" onclick="removePaymentMethod(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(methodDiv);
+}
+
+// Fungsi untuk menghapus metode pembayaran
+function removePaymentMethod(button) {
+    const methodDiv = button.closest('.payment-method-item');
+    methodDiv.remove();
+    reorderPaymentMethods();
+}
+
+// Fungsi untuk mengatur ulang urutan
+function reorderPaymentMethods() {
+    const methods = document.querySelectorAll('.payment-method-item');
+    methods.forEach((method, index) => {
+        const orderInput = method.querySelector('.payment-order');
+        if (orderInput) {
+            orderInput.value = index + 1;
+        }
+    });
+}
+
+// Event listener untuk tombol tambah metode pembayaran
+document.getElementById('addPaymentMethod').addEventListener('click', function() {
+    const container = document.getElementById('paymentMethodsContainer');
+    const newIndex = container.querySelectorAll('.payment-method-item').length;
+    addPaymentMethodField({}, newIndex);
+});
+
+// Fungsi untuk menyimpan pengaturan toko
+async function saveStoreSettings(event) {
+    event.preventDefault();
+    
+    try {
+        // Coba dapatkan dokumen yang ada
+        let existingDoc;
+        try {
+            existingDoc = await localDB.get(SETTINGS_DOC_ID);
+        } catch (err) {
+            if (err.status !== 404) {
+                throw err;
+            }
+            // Dokumen baru
+            existingDoc = {
+                _id: SETTINGS_DOC_ID,
+                type: 'setting',
+                paymentMethods: []
+            };
+        }
+        
+        // Update data toko
+        existingDoc.storeName = document.getElementById('storeName').value.trim();
+        existingDoc.storeAddress = document.getElementById('storeAddress').value.trim();
+        existingDoc.storePhone = document.getElementById('storePhone').value.trim();
+        existingDoc.cashierName = document.getElementById('cashierName').value.trim();
+        existingDoc.receiptMessage = document.getElementById('receiptMessage').value.trim();
+        
+        // Simpan ke database
+        const response = await localDB.put(existingDoc);
+        console.log("Pengaturan toko disimpan:", response);
+        alert("Pengaturan toko berhasil disimpan!");
+        
+        // Sinkronisasi jika online
+        if (navigator.onLine) {
+            syncDatabases();
+        }
+    } catch (err) {
+        console.error("Gagal menyimpan pengaturan toko:", err);
+        alert("Gagal menyimpan pengaturan toko: " + err.message);
+    }
+}
+
+// Fungsi untuk menyimpan metode pembayaran
+async function savePaymentMethods(event) {
+    event.preventDefault();
+    
+    try {
+        // Coba dapatkan dokumen yang ada
+        let existingDoc;
+        try {
+            existingDoc = await localDB.get(SETTINGS_DOC_ID);
+        } catch (err) {
+            if (err.status !== 404) {
+                throw err;
+            }
+            // Dokumen baru
+            existingDoc = {
+                _id: SETTINGS_DOC_ID,
+                type: 'setting'
+            };
+        }
+        
+        // Ambil semua metode pembayaran dari form
+        const paymentMethods = [];
+        const methodItems = document.querySelectorAll('.payment-method-item');
+        
+        methodItems.forEach(item => {
+            const code = item.querySelector('.payment-code').value.trim();
+            const name = item.querySelector('.payment-name').value.trim();
+            const isActive = item.querySelector('.payment-active').checked;
+            const order = parseInt(item.querySelector('.payment-order').value) || 1;
+            
+            if (code && name) {
+                paymentMethods.push({
+                    code: code,
+                    name: name,
+                    isActive: isActive,
+                    order: order
+                });
+            }
+        });
+        
+        // Urutkan berdasarkan order
+        paymentMethods.sort((a, b) => a.order - b.order);
+        
+        // Update dokumen
+        existingDoc.paymentMethods = paymentMethods;
+        
+        // Simpan ke database
+        const response = await localDB.put(existingDoc);
+        console.log("Metode pembayaran disimpan:", response);
+        alert("Metode pembayaran berhasil disimpan!");
+        
+        // Sinkronisasi jika online
+        if (navigator.onLine) {
+            syncDatabases();
+        }
+    } catch (err) {
+        console.error("Gagal menyimpan metode pembayaran:", err);
+        alert("Gagal menyimpan metode pembayaran: " + err.message);
+    }
+}
+
+
+// Sync database (offline-first)
+function syncDatabases() {
+  if (navigator.onLine) {
+    localDB.sync(remoteDB)
+      .on('complete', function () {
+        console.log('Sync completed');
+      })
+      .on('error', function (err) {
+        console.log('Sync error:', err);
+      });
+  }
+}
+
+    // full screen helper
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else if (document.exitFullscreen) document.exitFullscreen();
+    }
+  
+// Event listener untuk form submit
+document.getElementById('storeSettingsForm').addEventListener('submit', saveStoreSettings);
+document.getElementById('paymentMethodsForm').addEventListener('submit', savePaymentMethods);
+
+// Muat pengaturan saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    // Inisialisasi toast
+    $('.toast').toast({ autohide: false });
+    loadSettings();
+});
+
+// Sync saat online
+window.addEventListener('online', syncDatabases);
+  
+  document.addEventListener('DOMContentLoaded', async function () {
+
+    // Fungsi cek apakah sudah ada wallet atau category
+    async function checkIfNeedsTour() {
+        return true; // fallback: tampilkan tour jika error
+    }
+
+    // Cek localStorage dulu (untuk performa, tidak perlu cek DB jika sudah selesai tour)
+    const tourCompleted = localStorage.getItem('setting_tour_completed') === 'true';
+
+    if (tourCompleted) {
+      return; // Jangan tampilkan tour
+    }
+
+    // Cek ke PouchDB: apakah perlu tampilkan tour?
+    const needsTour = await checkIfNeedsTour();
+
+    if (needsTour) {
+      setTimeout(() => {
+        const intro = introJs();
+        intro.setOptions({
+          nextLabel: 'Lanjut →',
+          prevLabel: '← Kembali',
+          skipLabel: 'Lewati',
+          doneLabel: 'Selesai',
+          showProgress: true,
+          showBullets: false,
+          exitOnOverlayClick: false,
+          exitOnEsc: false,
+          scrollToElement: true,
+          disableInteraction: true
+        });
+
+        intro.oncomplete(() => {
+          localStorage.setItem('setting_tour_completed', 'true');
+        });
+
+        intro.onexit(() => {
+          // Jangan tandai selesai jika hanya di-skip
+          // Biarkan cek ulang next time jika data belum dibuat
+        });
+
+        intro.start();
+      }, 800);
+    } else {
+      // Jika sudah ada data, tandai tour selesai agar tidak muncul lagi
+      localStorage.setItem('setting_tour_completed', 'true');
+    }
+  });
+</script>
+</body>
+</html>

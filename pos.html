@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#343a40">
+  <meta name="description" content="Aplikasi Kasir Offline First">
+  <title>Transaksi Kasir - Kasir PWA</title>
+  <!-- Manifest -->
+  <link rel="manifest" href="/assets/json/manifest.json">
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/assets/img/icon-192x192.png">
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Awesomplete CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.7/awesomplete.min.css">
+  <link rel="stylesheet" href="/assets/css/awesomplete.dark.css">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=swap" rel="stylesheet">
+  <!-- Intro.js CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css" rel="stylesheet">
+  <!-- Intro.js Theme (Dark Mode Friendly) -->
+  <style>
+    .introjs-helperLayer {
+      background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+    .introjs-tooltip {
+      background-color: #343a40 !important;
+      color: #fff !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .introjs-button {
+      background-color: #007bff !important;
+      border: none !important;
+      border-radius: 4px;
+    }
+    .introjs-skipbutton {
+      color: #ccc !important;
+      font-size: 14px;
+    }
+    .introjs-prevbutton {
+      background-color: #6c757d !important;
+    }
+  </style>
+  <style>
+    /* Offline indicator */
+    .offline-indicator {
+      position: relative;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #dc3545;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      z-index: 9999;
+      display: none;
+    }
+    .online-indicator {
+      position: relative;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #28a745;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      z-index: 9999;
+      display: none;
+    }
+    /* Styling for payment section */
+    .payment-section {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-top: 1px solid #dee2e6;
+    }
+    .payment-input {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    /* Styling for transaction details header */
+    .transaction-header {
+      background: #17a2b8;
+      color: white;
+    }
+  </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0R4XFWJZ22"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0R4XFWJZ22'); // Ganti dengan ID G- Anda
+</script>
+</head>
+<body class="hold-transition sidebar-mini dark-mode">
+<!-- Offline/Online Indicators -->
+<div id="offlineIndicator" class="offline-indicator">
+  <i class="fas fa-wifi-slash"></i> Anda sedang offline. Data akan disimpan secara lokal.
+</div>
+<div id="onlineIndicator" class="online-indicator">
+  <i class="fas fa-wifi"></i> Koneksi tersedia.
+</div>
+<div class="wrapper" id="app">
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-dark">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <!-- Navbar Search -->
+      <li class="nav-item">
+        <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+          <i class="fas fa-search"></i>
+        </a>
+        <div class="navbar-search-block">
+          <form class="form-inline">
+            <div class="input-group input-group-sm">
+              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+              <div class="input-group-append">
+                <button class="btn btn-navbar" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </li>
+      <!-- Notification -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-bell"></i>
+          <span class="badge badge-warning navbar-badge">3</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <span class="dropdown-item dropdown-header">3 Notifications</span>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-box text-warning"></i> Stok produk hampir habis
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-check-circle text-success"></i> Transaksi berhasil
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-exclamation-triangle text-danger"></i> Kesalahan sistem
+          </a>
+        </div>
+      </li>
+      <!-- Messages -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-envelope"></i>
+          <span class="badge badge-danger navbar-badge">2</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-envelope mr-2"></i> Permintaan restok
+            <span class="float-right text-muted text-sm">2 mins</span>
+          </a>
+        </div>
+      </li>
+      <!-- Tasks -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="fas fa-tasks"></i>
+          <span class="badge badge-info navbar-badge">1</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-clipboard-list mr-2"></i> Verifikasi stok
+          </a>
+        </div>
+      </li>
+      <!-- Fullscreen -->
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="toggleFullScreen()">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </a>
+      </li>
+      <!-- Profile -->
+      <li class="nav-item">
+        <a class="nav-link" href="profile.html"><i class="fas fa-user"></i></a>
+      </li>
+      <!-- Logout -->
+      <li class="nav-item">
+        <a class="nav-link" href="logout.html"><i class="fas fa-sign-out-alt"></i></a>
+      </li>
+    </ul>
+  </nav>
+  <!-- Sidebar -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="index.html" class="brand-link">
+      <span class="brand-text font-weight-light">Kasir PWA</span>
+    </a>
+    <div class="sidebar">
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+          <li class="nav-item"><a href="index.html" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p></a></li>
+          <li class="nav-item"><a href="pos.html" class="nav-link active"><i class="nav-icon fas fa-cash-register"></i><p>Kasir</p></a></li>
+          <li class="nav-item"><a href="product.html" class="nav-link"><i class="nav-icon fas fa-box"></i><p>Produk</p></a></li>
+          <li class="nav-item"><a href="customer.html" class="nav-link"><i class="nav-icon fas fa-users"></i><p>Pelanggan</p></a></li>
+          <li class="nav-item"><a href="report.html" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Laporan</p></a></li>
+          <li class="nav-item"><a href="setting.html" class="nav-link"><i class="nav-icon fas fa-cog"></i><p>Pengaturan</p></a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+  <!-- Content Wrapper -->
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1><i class="fas fa-cash-register"></i> Transaksi Kasir</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+              <li class="breadcrumb-item active">Transaksi Kasir</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+		<div class="row">
+		  <div class="col-md-12">
+			<div class="card card-widget widget-user-2">
+			  <div class="card-header transaction-header">
+				<div class="widget-user-header text-center">
+				  <h3 class="widget-user-username" data-intro="1/4# Klik ke halaman <b>Pengaturan</b> untuk memberi nama toko dan data struk lainnya" data-step="1">{{ storeName }}</h3>
+				  <h5 class="widget-user-desc">{{ storeAddress }}. Ph. {{ storePhone }}</h5>
+				</div>
+			  </div>
+			  <div class="card-body">
+				<div class="row">
+				  <div class="col-12 col-sm-6 col-md-6 d-flex align-items-center justify-content-center">
+					<span class="nav-link p-0 text-center">
+					  <i class="fas fa-user mr-2"></i> Kasir: <strong>{{ cashierName }}</strong>
+					</span>
+				  </div>
+				  <div class="col-12 col-sm-6 col-md-6 d-flex align-items-center justify-content-center">
+					<span class="nav-link p-0 text-center">
+					  <i class="fas fa-calendar-alt mr-2"></i> Waktu Transaksi: <strong>{{ currentTransactionTime }}</strong>
+					</span>
+				  </div>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		</div>
+		<div class="row">
+		  <div class="col-md-12">
+		    <div class="card card-info">
+              <div class="card-header">
+                <h3 class="card-title">Total Pembayaran</h3>
+              </div>
+              <div class="card-body text-center" ref="totalPayment">
+                <h1 class="display-3 text-warning font-weight-bold">Rp {{ formatRupiah(grandTotal) }}</h1>
+              </div>
+            </div>
+		  </div>
+		</div>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card card-primary">
+              <div class="card-header">
+                <h3 class="card-title">Input Barang</h3>
+              </div>
+              <div class="card-body">
+                <form @submit.prevent="addItem">
+				  <!-- Input Pelanggan -->
+				  <div class="form-group">
+					<label>Pelanggan</label>
+					<input type="text"
+						   class="form-control"
+						   v-model="customerName"
+						   ref="customerInput"
+						   @focus="initCustomerAwesomplete"
+						   placeholder="Ketik nama pelanggan"
+               data-intro="4/4# Klik ke halaman <b>Pelanggan</b> untuk menambah nama pelanggan (opsional, bisa kosong)" data-step="4"
+               >
+				  </div>
+					<!-- Pilihan Input Mode -->
+				  <div class="form-group">
+					<label>Mode Input</label>
+					<div class="row">
+					  <div class="col-md-6">
+						<div class="form-check">
+						  <input class="form-check-input" type="radio" name="inputMode" id="inputManual" value="manual" v-model="inputMode">
+						  <label class="form-check-label" for="inputManual">Input Manual</label>
+						</div>
+					  </div>
+					  <div class="col-md-6">
+						<div class="form-check">
+						  <input class="form-check-input" type="radio" name="inputMode" id="inputScan" value="scan" v-model="inputMode">
+						  <label class="form-check-label" for="inputScan">Input Scan</label>
+						</div>
+					  </div>
+					</div>
+				  </div>
+				  <!-- Input Nama Barang (Menggantikan SKU dan Nama) -->
+				  <div class="form-group">
+					<label>Nama Barang</label>
+					<input type="text"
+						   class="form-control"
+						   v-model="newItem.name"
+						   ref="productNameInput"
+						   @focus="initProductAwesomplete"
+						   placeholder="Ketik nama barang atau scan barcode"
+						   required
+                 data-intro="3/4# Klik ke halaman <b>Produk</b> untuk menambah nama produk" data-step="3"
+               >
+				  </div>
+				  <div class="form-group">
+					<label>Harga (Rp)</label>
+					<input type="number" class="form-control" v-model.number="newItem.price" required>
+				  </div>
+				  <div class="form-group">
+					<label>Jumlah</label>
+					<input type="number" class="form-control" v-model.number="newItem.qty" required>
+				  </div>
+				  <div class="form-group">
+					<label>Diskon (%)</label>
+					<input type="number" class="form-control" v-model.number="newItem.discount" min="0" max="100">
+				  </div>
+				  <!-- Input Pajak Baru -->
+				  <div class="form-group">
+					<label>Pajak (%)</label>
+					<input type="number" class="form-control" v-model.number="newItem.tax" min="0" max="100" placeholder="0">
+				  </div>
+				  <!-- Tombol Tambah -->
+				  <button type="submit" class="btn btn-success mb-3"><i class="fas fa-plus"></i> Tambah</button>
+				  <!-- Metode Pembayaran -->
+				  <div class="form-group">
+					<label>Metode Pembayaran</label>
+					<select class="form-control" v-model="newItem.paymentMethod" required  data-intro="2/4#: Masih di halaman <b>Pengaturan</b> untuk menambah metode pembayaran" data-step="2">
+					  <option value="">Pilih Metode</option>
+					  <option v-for="method in paymentMethods" :key="method.code" :value="method.code">{{ method.name }}</option>
+					</select>
+				  </div>
+				</form>
+                <!-- Bagian Pembayaran baru -->
+                <div class="payment-section">
+                  <h5>Pembayaran</h5>
+                  <div class="form-group">
+                    <label for="uangDiterima">Uang Diterima (Rp)</label>
+                    <input type="number" class="form-control payment-input"
+                           id="uangDiterima"
+                           v-model.number="uangDiterima"
+                           :min="grandTotal"
+                           placeholder="Masukkan uang diterima"
+                           @input="calculateKembalian">
+                  </div>
+                  <div class="form-group">
+                    <label for="uangKembali">Uang Kembali (Rp)</label>
+                    <input type="number" class="form-control payment-input"
+                           id="uangKembali"
+                           :value="uangKembali"
+                           readonly
+                           placeholder="Uang kembali otomatis dihitung">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Daftar Item</h3>
+              </div>
+              <div class="card-body p-0">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Nama</th>
+                      <th>Kategori</th>
+                      <th align="right">Harga</th>
+                      <th align="right">Jumlah</th>
+                      <th align="right">Diskon</th>
+                      <th align="right">Pajak</th>
+                      <th align="right">Subtotal</th>
+                      <th align="center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, index) in items" :key="index">
+                      <td>{{ item.name }}</td>
+                      <td>{{ item.category || '-' }}</td>
+                      <td align="right">Rp {{ formatRupiah(item.price) }}</td>
+                      <td align="right">{{ item.qty }}</td>
+                      <td align="right">{{ item.discount }}%</td>
+                      <td align="right">{{ item.tax }}%</td>
+                      <td align="right">Rp {{ formatRupiah(calculateItemTotal(item)) }}</td>
+                      <td align="center">
+                        <button class="btn btn-sm btn-warning" @click="editItem(index)"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" @click="confirmRemoveItem(index)"><i class="fas fa-trash"></i></button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td align="right"><strong>Total:</strong></td>
+                      <td align="right">{{ totalQty }}</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td><strong>Rp {{ formatRupiah(totalAmount) }}</strong></td>
+                      <td>&nbsp;</td>
+                    </tr>
+                     <tr>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td align="right"><strong>Diskon:</strong></td>
+                      <td><strong>Rp {{ formatRupiah(totalDiscount) }}</strong></td>
+                      <td>&nbsp;</td>
+                    </tr>
+                     <tr>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td align="right"><strong>Pajak:</strong></td>
+                      <td><strong>Rp {{ formatRupiah(totalTax) }}</strong></td>
+                      <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td align="right"><strong>Grand Total:</strong></td>
+                      <td><strong>Rp {{ formatRupiah(grandTotal) }}</strong></td>
+                      <td>&nbsp;</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- Tombol Aksi -->
+            <div class="card">
+              <div class="card-body text-center">
+                <button class="btn btn-primary mr-2" @click="saveAndPrint"><i class="fas fa-print"></i> Cetak & Simpan</button>
+                <button class="btn btn-success mr-2" @click="saveTransaction"><i class="fas fa-save"></i> Simpan</button>
+                <button class="btn btn-secondary" @click="resetTransaction"><i class="fas fa-redo"></i> Mulai Baru</button>
+              </div>
+            </div>
+            <!-- List Transaksi Tersimpan -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Transaksi Hari Ini</h3>
+                <div class="card-tools">
+                  <button class="btn btn-tool" @click="loadTransactions"><i class="fas fa-sync-alt"></i> Muat Ulang</button>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>No Faktur</th>
+                      <th>Tanggal</th>
+                      <th>Total</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="transaction in savedTransactions" :key="transaction._id">
+                      <td>{{ transaction.invoiceNumber }}</td>
+                      <td>{{ formatDate(transaction.timestamp) }}</td>
+                      <td>Rp {{ formatRupiah(transaction.grandTotal) }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-info mr-1" @click="loadTransaction(transaction)"><i class="fas fa-eye"></i> Lihat</button>
+                        <button class="btn btn-sm btn-primary" @click="printReceipt(transaction._id)"><i class="fas fa-print"></i> Cetak Ulang</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+    <!-- Main Footer -->
+  <footer class="main-footer">
+    <strong>Kasir PWA &copy; 2025</strong>
+  </footer>
+  <!-- Modal untuk Scanner -->
+  <div id="scanner-container"></div>
+	<script>
+	  fetch('/assets/html/scanner-modal.html')
+		.then(res => res.text())
+		.then(html => {
+		  document.getElementById('scanner-container').innerHTML = html;
+		});
+	</script>
+</div>
+<!-- Service Worker Registration -->
+<script>
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/assets/js/service-worker.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+  // Network status monitoring
+  function updateOnlineStatus() {
+    const offlineIndicator = document.getElementById('offlineIndicator');
+    const onlineIndicator = document.getElementById('onlineIndicator');
+    if (navigator.onLine) {
+      offlineIndicator.style.display = 'none';
+      onlineIndicator.style.display = 'block';
+      setTimeout(() => {
+        onlineIndicator.style.display = 'none';
+      }, 3000);
+    } else {
+      offlineIndicator.style.display = 'block';
+    }
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus(); // Initial check
+</script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.min.js"></script>
+<!-- html5-qrcode library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- file scanner reusable -->
+<script src="/assets/js/scanner.js"></script>
+<!-- Howler.js for audio (beep) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+<!-- Awesomplete JS -->
+<script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js" async></script>
+<!-- Intro.js JS -->
+<script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
+  <script>
+// Inisialisasi PouchDB
+const localDB = new PouchDB('kasir_transaction_db');
+const productDB = new PouchDB('kasir_product_db');
+const customerDB = new PouchDB('kasir_customer_db');
+const settingDB = new PouchDB('kasir_setting_db');
+const categoryDB = new PouchDB('kasir_product_category_db'); // Database kategori
+const remoteDB = new PouchDB('https://couchdb.test/kasir_transaction_db'); // Ganti dengan URL CouchDB Anda
+const SETTINGS_DOC_ID = 'setting_store'; // ID Dokumen Setting
+
+// Sync database (offline-first)
+function syncDatabases() {
+  if (navigator.onLine) {
+    localDB.sync(remoteDB)
+      .on('complete', function () {
+        console.log('Sync completed');
+      })
+      .on('error', function (err) {
+        console.log('Sync error:', err);
+      });
+  }
+}
+
+// Sync saat online
+window.addEventListener('online', syncDatabases);
+
+// Inisialisasi Howler.js untuk suara beep
+let successSound, failSound;
+function initSounds() {
+  // Menggunakan data URI untuk suara dasar jika file eksternal tidak diinginkan
+  // Suara Beep Sukses (nada tinggi pendek)
+  const successBeepData = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA";
+  // Suara Beep Gagal (nada rendah pendek)
+  const failBeepData = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA";
+  successSound = new Howl({
+    src: ['/assets/mp3/beep-success.mp3', successBeepData], // Fallback ke data URI
+    volume: 0.5
+  });
+  failSound = new Howl({
+    src: ['/assets/mp3/beep-failed.mp3', failBeepData], // Fallback ke data URI
+    volume: 0.5
+  });
+}
+
+new Vue({
+  el: '#app',
+  data: {
+    newItem: {
+      sku: '',
+      name: '',
+      category: '',
+      price: 0,
+      qty: 1,
+      discount: 0,
+      tax: 0,
+      paymentMethod: 'tunai', // Default ke kode metode pembayaran
+    },
+    items: [],
+    editingIndex: -1,
+    savedTransactions: [],
+    currentInvoiceNumber: '',
+    currentTransactionId: null,
+    uangDiterima: 0,
+    uangKembali: 0,
+    // --- Data baru untuk mode input ---
+    inputMode: 'manual', // Default ke manual
+    storeName: 'Nama Toko Kosong',
+    storeAddress: 'seting di pengaturan',
+    storePhone: '-',
+    cashierName: '-',
+    cashierId: 'default-cashier', // ID kasir
+    currentTransactionTime: new Date().toLocaleString('id-ID'), // Waktu saat transaksi dimulai
+    // --- Data untuk Awesomplete ---
+    customerList: [], // Array untuk menyimpan daftar pelanggan
+    productList: [],  // Array untuk menyimpan daftar produk
+    categoryList: [], // Array untuk menyimpan daftar kategori
+    selectedCustomer: null, // Objek pelanggan yang dipilih
+    paymentMethods: [] // Array untuk menyimpan metode pembayaran
+  },
+  computed: {
+    // Hitung total sebelum diskon dan pajak
+    totalAmount() {
+      return this.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    },
+    // Hitung total jumlah item
+    totalQty() {
+      return this.items.reduce((sum, item) => sum + item.qty, 0);
+    },
+    // Hitung total diskon
+    totalDiscount() {
+      return this.items.reduce((sum, item) => {
+        const itemSubtotal = item.price * item.qty;
+        return sum + (itemSubtotal * item.discount / 100);
+      }, 0);
+    },
+    // Hitung total pajak
+    totalTax() {
+      return this.items.reduce((sum, item) => {
+        const itemSubtotal = item.price * item.qty;
+        const discountAmount = itemSubtotal * item.discount / 100;
+        const afterDiscount = itemSubtotal - discountAmount;
+        return sum + (afterDiscount * item.tax / 100);
+      }, 0);
+    },
+    // Hitung grand total
+    grandTotal() {
+      const subtotal = this.totalAmount;
+      const discount = this.totalDiscount;
+      const tax = this.totalTax;
+      return subtotal - discount + tax;
+    }
+  },
+  watch: {
+    // --- Watcher untuk inputMode ---
+    inputMode(newMode, oldMode) {
+      if (newMode === 'scan') {
+        this.openScannerModal();
+      } else if (oldMode === 'scan') {
+        // Jika berpindah DARI scan, pastikan scanner dihentikan
+        this.stopScanning();
+        $('#scannerModal').modal('hide');
+      }
+    }
+    // -------------------------------
+  },
+  methods: {
+     // --- Metode untuk scroll halus ---
+     smoothScrollToElement(element, duration) {
+        const targetY = window.scrollY + element.getBoundingClientRect().top - window.innerHeight / 4;
+        const startingY = window.scrollY;
+        const diff = targetY - startingY;
+        let start;
+        if (!diff) return;
+        const step = (timestamp) => {
+            if (!start) start = timestamp;
+            const time = timestamp - start;
+            const percent = Math.min(time / duration, 1);
+            const easeInOutQuad = percent < 0.5
+                ? 2 * percent * percent
+                : -1 + (4 - 2 * percent) * percent;
+            window.scrollTo(0, startingY + diff * easeInOutQuad);
+            if (time >= duration) {
+                setTimeout(() => {
+                    const totalPaymentElement = document.querySelector('.card-info'); // Cari elemen Total Pembayaran
+                    if (totalPaymentElement) {
+                        const totalPaymentY = window.scrollY + totalPaymentElement.getBoundingClientRect().top - window.innerHeight / 4;
+                        window.scrollTo({
+                            top: totalPaymentY,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 1000);
+                return;
+            }
+            window.requestAnimationFrame(step);
+        };
+        window.requestAnimationFrame(step);
+    },
+    // -------------------------------
+    // --- Metode scanner dengan logika pencarian yang sudah diperbaiki ---
+    openScannerModal() {
+      $('#scannerModal').modal('show');
+      const self = this;
+      setTimeout(() => {
+        startQRScanner(
+          (decodedText, decodedResult) => {
+            console.log(`Scan berhasil: ${decodedText}`);
+            self.stopScanning();
+            // --- LOGIKA PENCARIAN BARU - SESUAIKAN STRUKTUR DB ---
+            // Ambil semua dokumen produk, lalu cari yang field 'sku'-nya cocok.
+            productDB.allDocs({ include_docs: true }).then(result => {
+              const allProducts = result.rows.map(row => row.doc);
+              const foundProduct = allProducts.find(p => p.sku === decodedText);
+              // Periksa apakah produk ditemukan
+              if (foundProduct) {
+                // Ambil kategori jika ada
+                let categoryName = '';
+                if (foundProduct.categoryId) {
+                  const category = self.categoryList.find(cat => cat._id === foundProduct.categoryId);
+                  categoryName = category ? category.name : '';
+                }
+
+                const scannedItem = {
+                  sku: decodedText,
+                  name: foundProduct.name,
+                  category: categoryName,
+                  price: foundProduct.sellPrice !== undefined ? foundProduct.sellPrice : (foundProduct.price || 0),
+                  qty: 1,
+                  discount: foundProduct.discount || 0,
+                  tax: foundProduct.tax || 0,
+                  paymentMethod: self.newItem.paymentMethod
+                };
+                self.items.push(scannedItem);
+                if (successSound) successSound.play();
+                $('#scannerModal').modal('hide');
+                self.inputMode = 'manual';
+                self.$nextTick(() => {
+                    const tableBody = document.querySelector('.table tbody');
+                    if (tableBody && tableBody.lastElementChild) {
+                        const targetRow = tableBody.lastElementChild.previousElementSibling || tableBody.lastElementChild;
+                        self.smoothScrollToElement(targetRow, 500);
+                    }
+                    if (self.$refs.productNameInput) {
+                      self.$refs.productNameInput.focus();
+                    }
+                });
+              } else {
+                // Produk dengan SKU tersebut benar-benar tidak ada
+                console.warn(`Produk dengan SKU ${decodedText} tidak ditemukan.`);
+                if (failSound) failSound.play();
+                alert(`Produk dengan SKU ${decodedText} tidak ditemukan dalam database. Silahkan tambahkan dahulu data produk ..!`);
+                $('#scannerModal').modal('hide');
+                self.inputMode = 'manual';
+              }
+            }).catch(err => {
+              console.error('Gagal mengambil data produk dari database:', err);
+              alert('Terjadi kesalahan saat mengakses database produk.');
+              $('#scannerModal').modal('hide');
+              self.inputMode = 'manual';
+            });
+            // --- AKHIR LOGIKA PENCARIAN BARU ---
+          },
+          (errorMessage) => {
+            // Tidak ada aksi
+          }
+        );
+      }, 500);
+    },
+    stopScanning() {
+      stopQRScanner();
+    },
+    // -------------------------------
+    // --- Inisialisasi Awesomplete untuk Produk ---
+    async initProductAwesomplete() {
+        const input = this.$refs.productNameInput;
+        if (!input) return;
+        // Cek apakah Awesomplete sudah diinisialisasi
+        if (input.awesomplete) {
+            return;
+        }
+        try {
+            // Ambil semua dokumen produk dan kategori
+            const [productResult, categoryResult] = await Promise.all([
+                productDB.allDocs({ include_docs: true }),
+                categoryDB.allDocs({ include_docs: true })
+            ]);
+
+            // Simpan data produk dan kategori untuk referensi
+            this.productList = productResult.rows.map(row => row.doc);
+            this.categoryList = categoryResult.rows.map(row => row.doc);
+
+            // Buat daftar nama produk untuk Awesomplete
+            const productNames = this.productList.map(product => product.name);
+
+            // Inisialisasi Awesomplete
+            input.awesomplete = new Awesomplete(input, {
+                list: productNames,
+                minChars: 1,
+                autoFirst: true,
+            });
+
+            // Event ketika item dipilih
+            input.addEventListener('awesomplete-selectcomplete', (event) => {
+                const selectedName = event.text.value;
+                // Cari produk lengkap berdasarkan nama
+                const selectedProduct = this.productList.find(p => p.name === selectedName);
+                if (selectedProduct) {
+                    // Isi field berdasarkan data produk
+                    this.newItem.name = selectedName;
+                    this.newItem.sku = selectedProduct.sku || '';
+                    // Menggunakan sellPrice sesuai permintaan
+                    this.newItem.price = selectedProduct.sellPrice !== undefined ? selectedProduct.sellPrice : (selectedProduct.price || 0);
+                    // Menggunakan discount jika ada di produk
+                    this.newItem.discount = selectedProduct.discount || 0;
+                    // Menggunakan tax sesuai permintaan
+                    this.newItem.tax = selectedProduct.tax !== undefined ? selectedProduct.tax : 0;
+                    // Isi kategori
+                    if (selectedProduct.categoryId) {
+                        const category = this.categoryList.find(cat => cat._id === selectedProduct.categoryId);
+                        this.newItem.category = category ? category.name : '';
+                    } else {
+                        this.newItem.category = '';
+                    }
+                } else {
+                    // Ini seharusnya tidak terjadi karena list berasal dari productList
+                    console.warn('Selected product not found in internal list:', selectedName);
+                    this.resetProductFields(); // Reset jika tidak ditemukan
+                }
+            });
+        } catch (error) {
+            console.error('Gagal memuat daftar produk untuk autocomplete:', error);
+            alert('Terjadi kesalahan saat memuat daftar produk.');
+        }
+    },
+    // --- Helper untuk mereset field produk ---
+    resetProductFields() {
+        this.newItem.sku = '';
+        this.newItem.name = '';
+        this.newItem.category = '';
+        this.newItem.price = 0;
+        this.newItem.discount = 0;
+        this.newItem.tax = 0;
+    },
+    // --- Inisialisasi Awesomplete untuk Pelanggan ---
+    async initCustomerAwesomplete() {
+        const input = this.$refs.customerInput;
+        if (!input) return;
+        if (input.awesomplete) {
+          return;
+        }
+        try {
+          const result = await customerDB.allDocs({ include_docs: true });
+          this.customerList = result.rows.map(row => row.doc);
+          const customerNames = this.customerList.map(customer => customer.name);
+          input.awesomplete = new Awesomplete(input, {
+            list: customerNames,
+            minChars: 1,
+            autoFirst: true
+          });
+          input.addEventListener('awesomplete-selectcomplete', (event) => {
+            const selectedName = event.text.value;
+            const selectedCustomer = this.customerList.find(c => c.name === selectedName);
+            if (selectedCustomer) {
+              this.selectedCustomer = selectedCustomer;
+              this.customerName = selectedName;
+              // Jika pelanggan memiliki diskon, isi otomatis ke input diskon
+              if (selectedCustomer.discount) {
+                this.newItem.discount = selectedCustomer.discount;
+              }
+            } else {
+              this.selectedCustomer = null;
+            }
+          });
+        } catch (error) {
+          console.error('Gagal memuat daftar pelanggan:', error);
+        }
+      },
+    // --- Metode addItem yang Diperbarui ---
+    async addItem() {
+        // Validasi dasar
+        if (!this.newItem.name.trim()) {
+            alert('Nama barang harus diisi.');
+            return;
+        }
+        if (this.newItem.price <= 0) {
+            alert('Harga harus lebih besar dari 0.');
+            return;
+        }
+        // --- Mode Scan ---
+        if (this.inputMode === 'scan') {
+            // SKU harus ada saat scanning
+            if (!this.newItem.sku) {
+                alert('SKU tidak ditemukan saat scanning.');
+                if (failSound) failSound.play();
+                return;
+            }
+            let productExists = false;
+            let existingProduct = null;
+            try {
+                // Coba dapatkan produk berdasarkan SKU
+                const allProductsResult = await productDB.allDocs({ include_docs: true });
+                const productList = allProductsResult.rows.map(row => row.doc);
+                existingProduct = productList.find(p => p.sku === this.newItem.sku);
+                productExists = existingProduct;
+            } catch (err) {
+                // Error lain saat mengakses DB
+                console.error('Error saat memeriksa produk berdasarkan SKU:', err);
+                alert('Terjadi kesalahan saat memeriksa produk.');
+                if (failSound) failSound.play();
+                return;
+            }
+
+            if (productExists) {
+                // Ambil kategori jika ada
+                let categoryName = '';
+                if (existingProduct.categoryId) {
+                  const category = this.categoryList.find(cat => cat._id === existingProduct.categoryId);
+                  categoryName = category ? category.name : '';
+                }
+
+                // Produk ditemukan, tambahkan ke transaksi
+                // (Field sudah diisi oleh scanner jika data cukup, jika tidak gunakan dari DB)
+                if (!this.newItem.price) { // Jika harga tidak diisi otomatis oleh scanner
+                     this.newItem.price = existingProduct.sellPrice !== undefined ? existingProduct.sellPrice : (existingProduct.price || 0);
+                }
+                if (this.newItem.discount === 0 && existingProduct.discount) {
+                     this.newItem.discount = existingProduct.discount;
+                }
+                if (this.newItem.tax === 0 && existingProduct.tax !== undefined) {
+                     this.newItem.tax = existingProduct.tax;
+                }
+                if (!this.newItem.category) { // Jika kategori tidak diisi otomatis oleh scanner
+                     this.newItem.category = categoryName;
+                }
+                // Tambahkan ke daftar item
+                if (this.editingIndex === -1) {
+                    this.items.push({ ...this.newItem });
+                } else {
+                    this.$set(this.items, this.editingIndex, { ...this.newItem });
+                    this.editingIndex = -1;
+                }
+                if (successSound) successSound.play(); // Suara sukses
+                this.resetForm(); // Reset form setelah tambah
+                this.$nextTick(() => {
+                    if (this.$refs.productNameInput) {
+                        this.$refs.productNameInput.focus();
+                    }
+                });
+            } else {
+                // Produk TIDAK ditemukan saat scanning
+                // Sesuai permintaan: Bunyikan suara failed dan beri alert
+                if (failSound) failSound.play();
+                alert(`Produk dengan SKU ${this.newItem.sku} tidak ditemukan dalam database. Silakan tambahkan produk terlebih dahulu.`);
+                // Reset form kecuali SKU agar bisa diisi manual
+                const scannedSKU = this.newItem.sku;
+                this.resetForm();
+                this.newItem.sku = scannedSKU; // Pertahankan SKU yang discan
+                this.inputMode = 'manual'; // Kembali ke mode manual
+                // Fokus ke input nama untuk pengisian manual
+                this.$nextTick(() => {
+                    if (this.$refs.productNameInput) {
+                        this.$refs.productNameInput.focus();
+                    }
+                });
+            }
+            return; // Selesai untuk mode scan
+        }
+        // --- Akhir Mode Scan ---
+        // --- Mode Manual ---
+        if (this.inputMode === 'manual') {
+            let productFound = false;
+            let existingProduct = null;
+            // Cek apakah produk sudah ada berdasarkan NAMA (karena input nama manual)
+            try {
+                const allProductsResult = await productDB.allDocs({ include_docs: true });
+                const productList = allProductsResult.rows.map(row => row.doc);
+                existingProduct = productList.find(p => p.name === this.newItem.name);
+                productFound = existingProduct;
+            } catch (error) {
+                console.error('Error saat memeriksa produk berdasarkan nama:', error);
+                alert('Terjadi kesalahan saat memeriksa produk.');
+                return;
+            }
+
+            // Ambil kategori jika produk ditemukan
+            let categoryName = '';
+            if (existingProduct && existingProduct.categoryId) {
+                const category = this.categoryList.find(cat => cat._id === existingProduct.categoryId);
+                categoryName = category ? category.name : '';
+            }
+
+            // Tambahkan item ke transaksi terlebih dahulu
+            if (this.editingIndex === -1) {
+                this.items.push({ ...this.newItem, category: categoryName }); // Gunakan kategori dari produk yang ditemukan
+            } else {
+                this.$set(this.items, this.editingIndex, { ...this.newItem, category: categoryName });
+                this.editingIndex = -1;
+            }
+
+            // Jika produk tidak ditemukan, buat dokumen baru di kasir_product_db
+            if (!productFound) {
+                // Di dalam metode addItem(), pada blok if (!productFound)
+                const newProductDoc = {
+                    // Properti lain seperti name, sellPrice, dll.
+                    name: this.newItem.name,
+                    sku: this.newItem.sku || '',
+                    categoryId: '', // Harus diisi jika kategori ada
+                    costPrice: 0,
+                    sellPrice: this.newItem.price,
+                    stock: 0,
+                    tax: this.newItem.tax || 0,
+                    discount: this.newItem.discount || 0,
+                    imageUrl: '',
+                    type: 'product'
+                };
+                // Tentukan _id secara terpisah untuk kejelasan
+                // Jika ada SKU, jadikan SKU sebagai _id. Jika tidak, buat ID unik.
+                newProductDoc._id = this.newItem.sku ? `product-${this.newItem.sku}` : `product-${Date.now()}`;
+                try {
+                    await productDB.put(newProductDoc);
+                    console.log('Produk baru berhasil disimpan ke kasir_product_db:', this.newItem.name);
+                    // Refresh daftar produk untuk Awesomplete jika diperlukan
+                    // this.initProductAwesomplete(); // Opsional, bisa menyebabkan flicker
+                } catch (saveError) {
+                    console.error('Gagal menyimpan produk baru ke kasir_product_db:', saveError);
+                    alert('Produk ditambahkan ke transaksi, tetapi gagal disimpan ke database produk.');
+                }
+            } else {
+                 // Jika produk ditemukan, Anda bisa memilih untuk memperbarui informasi
+                 // Misalnya, jika pengguna mengubah harga manual, apakah ingin update DB?
+                 // Untuk saat ini, kita tidak mengubah produk yang sudah ada secara otomatis.
+                 // Logika ini bisa ditambahkan jika diperlukan.
+                 console.log('Produk sudah ada di database, tidak perlu disimpan ulang.');
+            }
+            // Reset form dan fokus
+            this.resetForm();
+            // --- BLOK BARU UNTUK SMOOTH SCROLL ---
+            // Jalankan scroll dan fokus setelah DOM diperbarui
+            this.$nextTick(() => {
+                const tableBody = document.querySelector('.table tbody');
+                if (tableBody && tableBody.lastElementChild) {
+                    // Mencari baris terakhir yang berisi data untuk dijadikan target scroll
+                    const targetRow = tableBody.lastElementChild.previousElementSibling || tableBody.lastElementChild;
+                    this.smoothScrollToElement(targetRow, 500);
+                }
+                // Fokus kembali ke input nama barang
+                if (this.$refs.productNameInput) {
+                    this.$refs.productNameInput.focus();
+                }
+            });
+            // --- AKHIR BLOK BARU ---
+        }
+        // --- Akhir Mode Manual ---
+    },
+    // --- Reset Form yang Diperbarui ---
+    resetForm() {
+        this.newItem = {
+          sku: '',
+          name: '',
+          category: '',
+          price: 0,
+          qty: 1,
+          discount: 0,
+          tax: 0, // Reset pajak
+          paymentMethod: 'tunai' // Reset ke default
+        };
+        this.customerName = ''; // Reset nama pelanggan
+        this.selectedCustomer = null;
+        this.uangDiterima = 0;
+        this.uangKembali = 0;
+    },
+    // -------------------------------
+    // --- Perbarui addItem untuk scroll halus ---
+     async addItemWithScroll() {
+        // Panggil logika addItem lama
+        await this.addItem();
+        // Setelah berhasil tambah item → scroll ke item terakhir
+        this.$nextTick(() => {
+            const tableBody = document.querySelector('.table tbody');
+            if (tableBody) {
+                const lastRow = tableBody.lastElementChild;
+                if (lastRow && lastRow.previousElementSibling) {
+                    this.smoothScrollToElement(lastRow.previousElementSibling, 500);
+                }
+            }
+        });
+        this.$nextTick(() => {
+            if (this.$refs.productNameInput) {
+                this.$refs.productNameInput.focus();
+            }
+        });
+    },
+    // -------------------------------
+    // --- Metode editItem yang diperbarui untuk menghentikan scan ---
+    editItem(index) {
+        // Jika sedang scanning, hentikan dulu
+        if (this.inputMode === 'scan') {
+            this.stopScanning();
+            $('#scannerModal').modal('hide'); // Tutup modal juga
+            // Kembalikan ke mode manual
+            this.inputMode = 'manual';
+        }
+        this.editingIndex = index;
+        this.newItem = { ...this.items[index] };
+        this.$nextTick(() => {
+            // Fokus ke input nama barang saat edit
+            if (this.$refs.productNameInput) {
+                this.$refs.productNameInput.focus();
+            }
+        });
+    },
+     // -------------------------------
+    // --- Metode lainnya tetap sama ---
+    confirmRemoveItem(index) {
+      if (confirm('Apakah Anda yakin ingin menghapus item ini?')) {
+        this.removeItem(index);
+      }
+    },
+    removeItem(index) {
+      this.items.splice(index, 1);
+    },
+    calculateItemTotal(item) {
+      const subtotal = item.price * item.qty;
+      const discountAmount = (subtotal * item.discount) / 100;
+      const afterDiscount = subtotal - discountAmount;
+      const taxAmount = (afterDiscount * item.tax) / 100;
+      return afterDiscount + taxAmount;
+    },
+    formatRupiah(value) {
+      return new Intl.NumberFormat('id-ID').format(value);
+    },
+    printReceipt(transactionIdToPrint = null) {
+      // Gunakan ID yang diberikan, atau ID transaksi aktif jika tidak ada yang diberikan
+      const idToUse = transactionIdToPrint || this.currentTransactionId;
+
+      if (!idToUse) {
+        alert('ID transaksi tidak ditemukan. Tidak bisa mencetak.');
+        return;
+      }
+
+      // Cek apakah dokumen transaksi dengan ID tersebut benar-benar ada di database
+      // (Opsional, tapi lebih aman)
+      localDB.get(idToUse).then(doc => {
+        if (doc.type !== 'transaction') {
+          alert('Dokumen yang ditemukan bukan transaksi.');
+          return;
+        }
+        // Jika dokumen valid, buka halaman cetak
+        const printUrl = `print-receipt.html?id=${encodeURIComponent(idToUse)}`;
+        // Gunakan window.open untuk membuka jendela cetak
+        window.open(printUrl, '_blank', 'width=300,height=500'); // Sesuaikan ukuran jika perlu
+      }).catch(err => {
+        console.error('Gagal mengambil transaksi untuk cetak ulang:', err);
+        alert(`Gagal mengambil data transaksi untuk dicetak ulang: ${err.message}`);
+      });
+    },
+    async saveAndPrint() {
+        // 1. Cek apakah ada item untuk disimpan/dicetak
+        if (this.items.length === 0) {
+            alert('Tidak ada item untuk disimpan dan dicetak!');
+            return;
+        }
+
+        // 2. Panggil logika saveTransaction (tanpa menampilkan alert sukses sekarang)
+        try {
+            // --- Bagian Kurangi Stok (ambil dari saveTransaction) ---
+            const stockUpdatePromises = [];
+            for (const item of this.items) {
+                let productToUpdate = null;
+                try {
+                  if (item.sku) {
+                    const allProducts = await productDB.allDocs({ include_docs: true });
+                    productToUpdate = allProducts.rows
+                      .map(row => row.doc)
+                      .find(p => p.sku === item.sku);
+                  }
+                  if (!productToUpdate) {
+                    const allProducts = await productDB.allDocs({ include_docs: true });
+                    productToUpdate = allProducts.rows
+                      .map(row => row.doc)
+                      .find(p => p.name === item.name);
+                  }
+                } catch (err) {
+                  console.error('Gagal ambil produk:', err);
+                  continue;
+                }
+
+                if (productToUpdate) {
+                    const currentStock = productToUpdate.stock !== undefined ? productToUpdate.stock : 0;
+                    const newStock = currentStock - item.qty;
+                    if (newStock < 0) {
+                        if (!confirm(`Stok untuk ${item.name} akan menjadi negatif (${newStock}). Lanjutkan menyimpan transaksi?`)) {
+                            return;
+                        }
+                    }
+                    const updatedProduct = {
+                        ...productToUpdate,
+                        stock: newStock
+                    };
+                    stockUpdatePromises.push(
+                        productDB.put(updatedProduct)
+                            .then(() => console.log(`Stok untuk ${item.name} berhasil diperbarui menjadi ${newStock}`))
+                            .catch(err => {
+                                console.error(`Gagal memperbarui stok untuk ${item.name}:`, err);
+                                alert(`Gagal memperbarui stok untuk ${item.name}.`);
+                            })
+                    );
+                }
+            }
+            if (stockUpdatePromises.length > 0) {
+                await Promise.all(stockUpdatePromises);
+                this.initProductAwesomplete();
+            }
+            // --- Akhir Bagian Kurangi Stok ---
+
+            // --- Bagian Simpan Transaksi (ambil dari saveTransaction) ---
+            let transactionId;
+            let invoiceNumber;
+            let rev;
+            if (this.currentTransactionId) {
+                transactionId = this.currentTransactionId;
+                invoiceNumber = this.currentInvoiceNumber;
+                try {
+                    const existingDoc = await localDB.get(transactionId);
+                    rev = existingDoc._rev;
+                } catch (error) {
+                    console.error('Error getting existing document for update:', error);
+                    alert('Gagal mendapatkan data transaksi untuk diperbarui!');
+                    return;
+                }
+            } else {
+                transactionId = 'trx-' + Date.now();
+                invoiceNumber = this.generateInvoiceNumber();
+            }
+
+            const formattedItems = this.items.map(item => {
+                const itemSubtotal = item.price * item.qty;
+                const itemDiscountAmount = itemSubtotal * item.discount / 100;
+                const itemAfterDiscount = itemSubtotal - itemDiscountAmount;
+                const itemTaxAmount = itemAfterDiscount * item.tax / 100;
+                const itemSubtotalFinal = itemAfterDiscount + itemTaxAmount;
+                const productInList = this.productList.find(p => p.sku === item.sku || p.name === item.name);
+                return {
+                    sku: item.sku,
+                    name: item.name,
+                    category: productInList?.category || '',
+                    qty: item.qty,
+                    price: item.price,
+                    discount: item.discount,
+                    tax: item.tax,
+                    subtotal: itemSubtotalFinal
+                };
+            });
+
+            const transaction = {
+                _id: transactionId,
+                type: 'transaction',
+                invoiceNumber: invoiceNumber,
+                transactionDate: new Date().toISOString(),
+                paymentMethod: this.newItem.paymentMethod,
+                cashierName: this.cashierName,
+                customerId: this.selectedCustomer ? this.selectedCustomer._id : '',
+                customerName: this.customerName || (this.selectedCustomer ? this.selectedCustomer.name : ''),
+                totalAmount: this.totalAmount,
+                totalDiscount: this.totalDiscount,
+                totalTax: this.totalTax,
+                grandTotal: this.grandTotal,
+                items: formattedItems,
+                notes: '',
+                timestamp: new Date().toISOString(),
+            };
+
+            if (rev) {
+                transaction._rev = rev;
+            }
+
+            await localDB.put(transaction);
+            console.log('Transaksi berhasil disimpan secara lokal!'); // Ganti alert dengan console.log sementara
+            this.loadTransactions();
+            this.currentTransactionId = null;
+            this.currentInvoiceNumber = '';
+            syncDatabases();
+            // --- Akhir Bagian Simpan Transaksi ---
+
+            // 3. Setelah berhasil menyimpan, panggil fungsi cetak
+            // Kita perlu memastikan ID transaksi yang baru disimpan diketahui
+            // Karena kita sudah mengisi transactionId di atas, kita bisa langsung gunakan
+            this.printReceipt(transactionId); // Kirim ID transaksi ke fungsi cetak
+
+        } catch (error) {
+            console.error('Gagal menyimpan transaksi sebelum mencetak:', error);
+            alert('Gagal menyimpan transaksi sebelum mencetak: ' + error.message);
+        }
+    },
+    async saveTransaction() {
+        if (this.items.length === 0) {
+            alert('Tidak ada item untuk disimpan!');
+            return;
+        }
+        // --- 1. Kurangi Stok ---
+        const stockUpdatePromises = [];
+        for (const item of this.items) {
+            // Cari produk berdasarkan SKU atau Nama (prioritaskan SKU)
+            let productToUpdate = null;
+            try {
+              if (item.sku) {
+                // Cari produk berdasarkan SKU di field, bukan asumsi _id
+                const allProducts = await productDB.allDocs({ include_docs: true });
+                productToUpdate = allProducts.rows
+                  .map(row => row.doc)
+                  .find(p => p.sku === item.sku);
+              }
+              if (!productToUpdate) {
+                // Jika masih belum ketemu, fallback cari berdasarkan nama
+                const allProducts = await productDB.allDocs({ include_docs: true });
+                productToUpdate = allProducts.rows
+                  .map(row => row.doc)
+                  .find(p => p.name === item.name);
+              }
+            } catch (err) {
+              console.error('Gagal ambil produk:', err);
+              continue;
+            }
+
+            if (productToUpdate) {
+                const currentStock = productToUpdate.stock !== undefined ? productToUpdate.stock : 0;
+                const newStock = currentStock - item.qty;
+                if (newStock < 0) {
+                    if (!confirm(`Stok untuk ${item.name} akan menjadi negatif (${newStock}). Lanjutkan menyimpan transaksi?`)) {
+                        return; // Batalkan simpan jika pengguna tidak setuju
+                    }
+                }
+                // Buat objek update
+                const updatedProduct = {
+                    ...productToUpdate, // Salin semua properti
+                    stock: newStock     // Update stok
+                };
+                // Simpan promise untuk dijalankan bersamaan nanti
+                stockUpdatePromises.push(
+                    productDB.put(updatedProduct)
+                        .then(() => console.log(`Stok untuk ${item.name} berhasil diperbarui menjadi ${newStock}`))
+                        .catch(err => {
+                            console.error(`Gagal memperbarui stok untuk ${item.name}:`, err);
+                            alert(`Gagal memperbarui stok untuk ${item.name}.`);
+                        })
+                );
+            }
+        }
+        // Jalankan semua update stok secara paralel
+        if (stockUpdatePromises.length > 0) {
+            await Promise.all(stockUpdatePromises);
+            this.initProductAwesomplete(); // Refresh autocomplete
+        }
+        // --- Akhir Kurangi Stok ---
+        // --- 2. Simpan Transaksi ke kasir_transaction_db ---
+        let transactionId;
+        let invoiceNumber;
+        let rev;
+        if (this.currentTransactionId) {
+            transactionId = this.currentTransactionId;
+            invoiceNumber = this.currentInvoiceNumber;
+            try {
+                const existingDoc = await localDB.get(transactionId);
+                rev = existingDoc._rev;
+            } catch (error) {
+                console.error('Error getting existing document for update:', error);
+                alert('Gagal mendapatkan data transaksi untuk diperbarui!');
+                return;
+            }
+        } else {
+            transactionId = 'trx-' + Date.now();
+            invoiceNumber = this.generateInvoiceNumber();
+        }
+
+        // Format items untuk sesuai dengan struktur yang diminta
+        const formattedItems = this.items.map(item => {
+            const itemSubtotal = item.price * item.qty;
+            const itemDiscountAmount = itemSubtotal * item.discount / 100;
+            const itemAfterDiscount = itemSubtotal - itemDiscountAmount;
+            const itemTaxAmount = itemAfterDiscount * item.tax / 100;
+            const itemSubtotalFinal = itemAfterDiscount + itemTaxAmount;
+            return {
+                sku: item.sku,
+                name: item.name,
+                category: item.category || '', // Gunakan kategori dari item transaksi
+                qty: item.qty,
+                price: item.price,
+                discount: item.discount,
+                tax: item.tax,
+                subtotal: itemSubtotalFinal // Gunakan total akhir per item
+            };
+        });
+
+        const transaction = {
+            _id: transactionId,
+            type: 'transaction',
+            invoiceNumber: invoiceNumber,
+            transactionDate: new Date().toISOString(),
+            paymentMethod: this.newItem.paymentMethod,
+            cashierId: this.cashierId, // Gunakan ID kasir
+            cashierName: this.cashierName,
+            customerId: this.selectedCustomer ? this.selectedCustomer._id : '',
+            customerName: this.customerName || (this.selectedCustomer ? this.selectedCustomer.name : ''),
+            totalAmount: this.totalAmount,
+            totalDiscount: this.totalDiscount,
+            totalTax: this.totalTax,
+            grandTotal: this.grandTotal,
+            items: formattedItems,
+            notes: '',
+            status: 'completed', // Status default
+            createdAt: new Date().toISOString(),
+            isSynced: false, // Tandai belum disinkronisasi
+            timestamp: new Date().toISOString(),
+        };
+
+        if (rev) {
+            transaction._rev = rev;
+        }
+        try {
+            await localDB.put(transaction);
+            alert('Transaksi berhasil disimpan secara lokal!');
+            this.loadTransactions();
+            this.currentTransactionId = null;
+            this.currentInvoiceNumber = '';
+            syncDatabases();
+        } catch (error) {
+            console.error('Error saving/updating transaction:', error);
+            alert('Gagal menyimpan transaksi!');
+        }
+        // --- Akhir Simpan Transaksi ---
+    },
+    resetTransaction() {
+      if (confirm('Apakah Anda yakin ingin memulai transaksi baru?')) {
+        // Hentikan scanner jika aktif
+        if (this.inputMode === 'scan') {
+            this.stopScanning();
+        }
+        this.items = [];
+        this.resetForm();
+        this.currentTransactionId = null;
+        this.currentInvoiceNumber = '';
+      }
+    },
+    generateInvoiceNumber() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      return `INV-${year}${month}${day}-${random}`;
+    },
+    async loadTransactions() {
+      try {
+        // --- Hitung awal dan akhir hari ini dalam format ISO (disesuaikan untuk zona waktu lokal) ---
+        const sekarang = new Date();
+        // Awal hari ini (misalnya, 2023-10-27T00:00:00.000)
+        const awalHariIni = new Date(sekarang.getFullYear(), sekarang.getMonth(), sekarang.getDate());
+        // Akhir hari ini (misalnya, 2023-10-27T23:59:59.999)
+        const akhirHariIni = new Date(sekarang.getFullYear(), sekarang.getMonth(), sekarang.getDate(), 23, 59, 59, 999);
+        // Konversi keISOString, tetapi pertahankan konteks waktu lokal dengan menyesuaikan offset zona waktu
+        // Ini memastikan query cocok dengan tanggal lokal dengan benar
+        const kunciAwalString = new Date(awalHariIni.getTime() - awalHariIni.getTimezoneOffset() * 60000).toISOString().slice(0, -1); // Hapus 'Z'
+        const kunciAkhirString = new Date(akhirHariIni.getTime() - akhirHariIni.getTimezoneOffset() * 60000).toISOString().slice(0, -1); // Hapus 'Z'
+        // --- Ambil semua dokumen untuk mendapatkan transaksi terbaru ---
+        // Kita ambil dokumen dari beberapa hari terakhir untuk memastikan menangkap hari ini
+        // Anda mungkin perlu menyesuaikan 'startkey' berdasarkan struktur ID Anda
+        const tanggalAwalQuery = new Date(sekarang);
+        tanggalAwalQuery.setDate(sekarang.getDate() - 2); // Ambil data 2 hari terakhir, sesuaikan jika perlu
+        const kunciAwalQuery = 'trx-' + tanggalAwalQuery.getTime(); // Asumsi struktur ID
+        const hasilSemuaDok = await localDB.allDocs({
+          include_docs: true,
+          startkey: kunciAwalQuery,
+          endkey: 'trx-\ufff0' // Kunci tinggi untuk mendapatkan dokumen yang dimulai dengan 'trx-'
+        });
+        // --- Filter dokumen yang diambil berdasarkan field 'timestamp' yang berada di hari ini ---
+        const transaksiHariIni = hasilSemuaDok.rows
+          .map(row => row.doc)
+          .filter(doc => {
+            // Pastikan dokumen ada dan memiliki field timestamp
+            if (doc && doc.timestamp && doc.type === 'transaction') { // Filter hanya transaksi
+              const tanggalDok = new Date(doc.timestamp);
+              // Periksa apakah tanggal dokumen berada dalam rentang hari ini
+              return tanggalDok >= awalHariIni && tanggalDok <= akhirHariIni;
+            }
+            return false; // Filter dokumen yang tidak memiliki timestamp yang valid atau bukan transaksi
+          })
+          // Urutkan berdasarkan timestamp secara menurun (terbaru dulu)
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        // Simpan hasil transaksi hari ini ke dalam data Vue
+        this.savedTransactions = transaksiHariIni;
+      } catch (error) {
+        console.error('Kesalahan saat memuat transaksi hari ini:', error);
+        // Secara opsional, tampilkan pesan kesalahan kepada pengguna
+        // alert('Gagal memuat transaksi hari ini!');
+        this.savedTransactions = []; // Kosongkan daftar jika terjadi kesalahan
+      }
+    },
+    loadTransaction(transaction) {
+      if (confirm('Apakah Anda ingin memuat transaksi ini? Transaksi saat ini akan terhapus.')) {
+         // Hentikan scanner jika aktif
+        if (this.inputMode === 'scan') {
+            this.stopScanning();
+        }
+        this.items = [...transaction.items];
+        this.currentInvoiceNumber = transaction.invoiceNumber;
+        this.currentTransactionId = transaction._id;
+        this.newItem.paymentMethod = transaction.paymentMethod || 'tunai';
+        this.uangDiterima = 0;
+        this.uangKembali = 0;
+        this.$nextTick(() => {
+             if (this.$refs.productNameInput) { // Fokus ke input produk
+                 this.$refs.productNameInput.focus();
+             }
+        });
+      }
+    },
+    formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('id-ID') + ' ' + date.toLocaleTimeString('id-ID');
+    },
+    calculateKembalian() {
+      if (this.uangDiterima >= this.grandTotal) {
+        this.uangKembali = this.uangDiterima - this.grandTotal;
+      } else {
+        this.uangKembali = 0;
+      }
+    },
+    async loadSettings() {
+      try {
+        const doc = await settingDB.get(SETTINGS_DOC_ID);
+        this.storeName = doc.storeName || '';
+        this.storeAddress = doc.storeAddress || '';
+        this.storePhone = doc.storePhone || '';
+        this.cashierName = doc.cashierName || '';
+        this.cashierId = doc.cashiers && doc.cashiers.length > 0 ? doc.cashiers[0].id : 'default-cashier'; // Ambil ID kasir pertama
+        this.paymentMethods = doc.paymentMethods || [];
+      } catch (err) {
+        if (err.status === 404) {
+          console.log("Dokumen pengaturan belum ada, menggunakan default.");
+        } else {
+          console.error("Gagal memuat pengaturan:", err);
+          alert("Gagal memuat pengaturan: " + err.message);
+        }
+      }
+    }
+    // -------------------------------
+  },
+  mounted() {
+    this.loadTransactions();
+    syncDatabases();
+    initSounds();
+    this.loadSettings();
+    // --- Inisialisasi Awesomplete saat pertama kali ---
+    this.$nextTick(() => {
+      this.initProductAwesomplete();
+      this.initCustomerAwesomplete();
+      if (this.$refs.productNameInput) {
+        this.$refs.productNameInput.focus();
+      }
+    });
+    // -------------------------------
+  },
+  beforeDestroy() {
+    // Hentikan scanner saat komponen dihancurkan
+    this.stopScanning();
+  }
+});
+
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+}
+
+// Event listener untuk menangani penutupan modal
+$(document).ready(function(){
+   $('#scannerModal').on('hidden.bs.modal', function (e) {
+     // Hentikan scanner ketika modal ditutup (baik dengan tombol close, batal, maupun esc)
+     app.stopScanning();
+     // Kembalikan ke mode manual jika mode scan aktif
+     if (app.inputMode === 'scan') {
+        app.inputMode = 'manual';
+     }
+   });
+});
+    
+  document.addEventListener('DOMContentLoaded', async function () {
+
+    // Fungsi cek apakah sudah ada wallet atau category
+    async function checkIfNeedsTour() {
+        return true; // fallback: tampilkan tour jika error
+    }
+
+    // Cek localStorage dulu (untuk performa, tidak perlu cek DB jika sudah selesai tour)
+    const tourCompleted = localStorage.getItem('pos_tour_completed') === 'true';
+
+    if (tourCompleted) {
+      return; // Jangan tampilkan tour
+    }
+
+    // Cek ke PouchDB: apakah perlu tampilkan tour?
+    const needsTour = await checkIfNeedsTour();
+
+    if (needsTour) {
+      setTimeout(() => {
+        const intro = introJs();
+        intro.setOptions({
+          nextLabel: 'Lanjut →',
+          prevLabel: '← Kembali',
+          skipLabel: 'Lewati',
+          doneLabel: 'Selesai',
+          showProgress: true,
+          showBullets: false,
+          exitOnOverlayClick: false,
+          exitOnEsc: false,
+          scrollToElement: true,
+          disableInteraction: true
+        });
+
+        intro.oncomplete(() => {
+          localStorage.setItem('pos_tour_completed', 'true');
+        });
+
+        intro.onexit(() => {
+          // Jangan tandai selesai jika hanya di-skip
+          // Biarkan cek ulang next time jika data belum dibuat
+        });
+
+        intro.start();
+      }, 800);
+    } else {
+      // Jika sudah ada data, tandai tour selesai agar tidak muncul lagi
+      localStorage.setItem('pos_tour_completed', 'true');
+    }
+  });
+</script>
+</body>
+</html>
