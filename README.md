@@ -1,4 +1,5 @@
 # Kasir-PWA
+<pre>
 Demo: https://kasir-pwa.web.app
 
 Aplikasi Kasir berbasis Progressive Web App (PWA) dengan pendekatan offline-first, dibangun menggunakan:
@@ -27,7 +28,7 @@ Cocok digunakan untuk:
 UMKM yang membutuhkan kasir sederhana tanpa bergantung pada koneksi internet
 Developer yang ingin mempelajari implementasi offline-first PWA
 Proyek open source POS (Point of Sale) yang ringan dan mudah dimodifikasi
-
+</pre>
 ---
 # 🟢 **MVP (Release Pertama)**
 ### `index.html → Dashboard`
